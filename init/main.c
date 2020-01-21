@@ -1067,6 +1067,9 @@ static int __ref kernel_init(void *unused)
 	system_state = SYSTEM_RUNNING;
 	numa_default_policy();
 
+	printk("\n##### John Hodson (UFID: 5244-0415) This is my first kernel mod! #####\n");
+	mdelay(1000*10);
+
 	rcu_end_inkernel_boot();
 
 	if (ramdisk_execute_command) {
