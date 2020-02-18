@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include "./../tags/tags.h"
 
 #define ARGCNT 3
 #define HELPMSG "Usage: settag <PID> <new tag>\n"

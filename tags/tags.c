@@ -1,4 +1,6 @@
-#include <tags.h>
+#include "tags.h"
+#include <unistd.h>
+#include <sys/syscall.h>
 
 #define __NR_get_tag 295
 #define __NR_set_tag 296

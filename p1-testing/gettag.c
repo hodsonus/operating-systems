@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/types.h>
-#include <tags.h>
+#include "./../tags/tags.h"
 
 #define ARGCNT 2
 #define HELPMSG "Usage: gettag <PID>\n"
