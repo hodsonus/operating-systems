@@ -740,13 +740,9 @@ __SC_COMP(__NR_io_pgetevents, sys_io_pgetevents, compat_sys_io_pgetevents)
 __SYSCALL(__NR_rseq, sys_rseq)
 #define __NR_kexec_file_load 294
 __SYSCALL(__NR_kexec_file_load,     sys_kexec_file_load)
-#define __NR_get_tag 295
-__SYSCALL(__NR_get_tag,     sys_get_tag)
-#define __NR_set_tag 296
-__SYSCALL(__NR_set_tag,     sys_set_tag)
 
 #undef __NR_syscalls
-#define __NR_syscalls 297
+#define __NR_syscalls 295
 
 /*
  * 32 bit systems traditionally used different
