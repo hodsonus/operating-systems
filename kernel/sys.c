@@ -899,6 +899,50 @@ SYSCALL_DEFINE0(gettid)
 	return task_pid_vnr(current);
 }
 
+/* get_tag - gets the tag associated with process id pid.
+ * Any process may read any tag so we do not perform any checks as to the 
+ * identity of the calling process in this method.
+ */
+SYSCALL_DEFINE1(get_tag, int, pid)
+{
+	int tag;
+	
+	// calls to find_task_by_vpid must be wrapped in the RCU read lock
+	rcu_read_lock();
+
+	/* find the task struct associated with this pid and get the tag attribute
+	off of it */
+	tag = find_task_by_vpid( (pid_t) pid )->tag;
+
+	// unlock as we are done with the task struct
+	rcu_read_unlock();
+
+	// return the retrieved tag
+	return tag;
+}
+
+/* set_tag - sets the tag for a task associated with process id pid
+ * A process running as superuser may read and write the tag of any process.
+ * A user process may decrease its own level, but not increase it.
+ */
+SYSCALL_DEFINE2(set_tag, int, pid, int, new_tag)
+{
+	// TODO - there needs to be some sort of logic here verifying that the
+	// update to the tag is allowed.
+
+	// calls to find_task_by_vpid must be wrapped in the RCU read lock
+	rcu_read_lock();
+
+	/* find the task struct associated with this pid and set the tag attribute
+	on it to the new_tag */
+	find_task_by_vpid( (pid_t) pid )->tag = new_tag;
+
+	// unlock as we are done with the task struct
+	rcu_read_unlock();
+
+	return 0;
+}
+
 /*
  * Accessing ->real_parent is not SMP-safe, it could
  * change from under us. However, we can use a stale
