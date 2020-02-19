@@ -12,4 +12,4 @@ tags.o: tags.c tags.h
 	$(CC) -c tags.c
 
 clean:
-	rm -f *.out *.o *.a
+	rm -f *.out *.o *.a *.gch
