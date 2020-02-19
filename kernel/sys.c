@@ -909,24 +909,49 @@ SYSCALL_DEFINE1(get_tag, pid_t, pid)
 	struct pid* pid_struct = find_get_pid(pid);
 	// retrieve the task struct associated with the pid struct
 	struct task_struct* task = pid_task(pid_struct, PIDTYPE_PID);
-	// get the tag attribute off of our task
-	uint32_t tag = task->tag;
-
-	// return the retrieved tag
-	return tag;
+	// return the tag attribute off of our task
+	return task->tag;;
 }
 
 long try_tag_update(uint32_t new_tag, struct task_struct* task) {
-	task->tag = new_tag;
+	/* A tag has a structure of two bits of level (the two LSBs) and 29 bits
+	of bitmap (bits 2 through 30). */
 
-	// TODO - finish implementing this method
-	// A tag has a structure of two bits of level (the two LSBs) and 29 bits of bitmap (bits 2 through 30).
 	// The MSB shall be set to 0 always.
-	// A process running as superuser may read and write the tag of any process.
-	// A user process may decrease its own level, but not increase it.
-	// A user process may reset a bit in its tag's bitmap to zero but not set a bit.
+	if (new_tag & (1 << 31)) {
+		return -1;
+	}
 
-	return 1;
+	/* A process running as superuser may read and write the tag of any
+	process. If the current user is the superuser, then we do not fall into
+	this if statement. */
+	if (current_cred()->uid.val != 0) {
+
+		uint32_t old_tag = task->tag;
+		uint32_t old_level = old_tag & 0x00000003;
+		uint32_t new_level = new_tag & 0x00000003;
+		uint32_t old_bitmap = old_tag & 0x7FFFFFFC;
+		uint32_t new_bitmap = new_tag & 0x7FFFFFFC;
+
+		// if the user doesn't own the current task
+		if (current_cred()->uid.val != task->cred->uid.val) {
+			return -1;
+		}
+
+		// A user process may decrease its own level, but not increase it.
+		if (new_level > old_level) {
+			return -1;
+		}
+
+		/* A user process may reset a bit in its tag's bitmap to zero but not
+		set a bit. */
+		if (  (old_bitmap | new_bitmap) & ~old_bitmap  ) {
+			return -1;
+		}
+	}
+
+	task->tag = new_tag;
+	return new_tag;
 }
 
 /* set_tag - sets the tag for a task associated with process id pid
