@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include "tags.h"
 
 #define __NR_get_tag 335
