@@ -1210,7 +1210,7 @@ struct task_struct {
 	unsigned long			prev_lowest_stack;
 #endif
 
-	int tag;
+	uint32_t tag;
 
 	/*
 	 * New fields for task_struct should be added above here, so that

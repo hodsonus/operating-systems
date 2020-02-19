@@ -903,55 +903,44 @@ SYSCALL_DEFINE0(gettid)
  * Any process may read any tag so we do not perform any checks as to the 
  * identity of the calling process in this method.
  */
-SYSCALL_DEFINE1(get_tag, int, pid)
+SYSCALL_DEFINE1(get_tag, pid_t, pid)
 {
-	// calls to pid_task() must be wrapped in the RCU read lock
-	// rcu_read_lock();
-
 	// find the pid struct associated with this pid
-	struct pid* pid_struct = find_get_pid((pid_t) pid);
+	struct pid* pid_struct = find_get_pid(pid);
 	// retrieve the task struct associated with the pid struct
 	struct task_struct* task = pid_task(pid_struct, PIDTYPE_PID);
 	// get the tag attribute off of our task
-	int tag = task->tag;
-
-	// unlock as we are done with the task struct
-	// rcu_read_unlock();
+	uint32_t tag = task->tag;
 
 	// return the retrieved tag
 	return tag;
 }
 
-// TODO - finish implementing this method
-long try_tag_update(int new_tag, struct task_struct* task) {
+long try_tag_update(uint32_t new_tag, struct task_struct* task) {
 	task->tag = new_tag;
 
-	// int old_tag = task->tag;
+	// TODO - finish implementing this method
+	// A tag has a structure of two bits of level (the two LSBs) and 29 bits of bitmap (bits 2 through 30).
+	// The MSB shall be set to 0 always.
+	// A process running as superuser may read and write the tag of any process.
+	// A user process may decrease its own level, but not increase it.
+	// A user process may reset a bit in its tag's bitmap to zero but not set a bit.
+
 	return 1;
 }
 
 /* set_tag - sets the tag for a task associated with process id pid
- * A process running as superuser may read and write the tag of any process.
- * A user process may decrease its own level, but not increase it.
- * A user process may reset a bit in its tag's bitmap to zero but not set a bit.
+ * Logic as to who is allowed to update a task's tag is implemented in try_tag_update.
  */
-SYSCALL_DEFINE2(set_tag, int, pid, int, new_tag)
+SYSCALL_DEFINE2(set_tag, pid_t, pid, uint32_t, new_tag)
 {
-	// calls to find_task_by_vpid must be wrapped in the RCU read lock
-	// rcu_read_lock();
-
 	// find the pid struct associated with this pid
-	struct pid* pid_struct = find_get_pid((pid_t) pid);
+	struct pid* pid_struct = find_get_pid(pid);
 	// retrieve the task struct associated with the pid struct
 	struct task_struct* task = pid_task(pid_struct, PIDTYPE_PID);
 
 	// attempt the tag update
-	long ret_val = try_tag_update(new_tag, task);
-
-	// unlock as we are done with the task struct
-	// rcu_read_unlock();
-
-	return ret_val;
+	return try_tag_update(new_tag, task);
 }
 
 /*
