@@ -1,0 +1,53 @@
+.TH set_tag "2" "02/20/20" "Project 1 System Calls" "COP4600 System Calls"
+
+.SH NAME
+set_tag, get_tag -- system calls to set and get tag information pertaining to a process.
+.SH SYNOPSIS
+.B long set_tag(pid_t pid, uint32_t new_tag)
+.br
+.B long get_tag(pid_t pid)
+.SH DESCRIPTION
+set_tag(pid_t pid, uint32_t new_tag) is the system call that sets the tag of the process with pid_t pid to uint32_t new_tag, if authorized. The tag is represented as a 32 bit unsigned integer. Bits 0 and 1 correspond to the level of a process. Bits 2 through 30 correspond to the bitmask. No user, not even the super user, may set bit 31 (always 0 as a result). The super user may set and clear any value in the bitmap or the level of any tag as they so please. A user may clear bits in their bitmap or decrease their level only.	
+.br
+
+set_tag exit status:
+.br
+tag
+if successful,
+.br
+-1
+if problems.
+.br
+
+get_tag(pid_t pid) is the system call that retrieves the tag of the process with pid_t pid. All users are authorized to read the tag of any process so it will fail only in the scenario that a process with pid_t pid does not exist. 
+.br
+
+get_tag exit status:
+.br
+tag
+if successful,
+.br
+-1
+if problems.
+.br
+.SH ERRORS
+set_tag errors occur when:
+.br
+The desired process cannot be found.
+.br
+A user process attempts to increase their level or set a bit in their bitmap.
+.br
+A user process attempts to edit the tag of another process.
+.br 
+Any process attempts to set the MSB.
+.br
+
+get_tag errors occur when:
+.br
+The desired process cannot be found.
+.SH NOTES
+No notes - most relevant material covered above.
+.SH SEE ALSO
+set_tag(3), harness_tag(3)
+.SH AUTHOR
+John Hodson

@@ -1,0 +1,64 @@
+.TH harness_tag "3" "02/20/20" "Project 1 Harness Functions" "COP4600 Library Functions"
+
+.SH NAME
+retrieve_set_tag_params, retrieve_get_tag_params, interpret_set_tag_result, interpret_get_tag_result -- harness functions to validate the implementation of the get_tag and set_tag system calls.
+.SH SYNOPSIS
+.B int* retrieve_set_tag_params(int pid, int new_tag)
+.br
+.B int* retrieve_get_tag_params(int pid)
+.br
+.B int interpret_set_tag_result(int ret_value)
+.br
+.B int interpret_get_tag_result(int ret_value)
+.SH DESCRIPTION
+int* retrieve_set_tag_params(int pid, int new_tag) is a harness function that returns an integer array of paramaters needed to make a system call to set_tag with the paramaters int pid and int new_tag.
+.br
+retrieve_set_tag_params return value:
+.br
+[336, 2, pid, new_tag]
+.br
+
+int* retrieve_get_tag_params(int pid) is a harness function that returns an integer array of paramaters needed to make a system call to get_tag with the paramater int pid.
+.br
+retrieve_get_tag_params return value:
+.br
+[335, 1, pid]
+.br
+
+int interpret_set_tag_result(int ret_value) is a harness function that interprets the return value of the system call set_tag.
+.br
+interpret_set_tag_result return value:
+.br
+ret_value
+.br
+
+int interpret_get_tag_result(int ret_value) is a harness function that interprets the return value of the system call get_tag.
+.br
+interpret_get_tag_result return value:
+.br
+ret_value
+.SH ERRORS
+retrieve_set_tag_params errors occur when:
+.br
+Malloc is unable to allocate memory for the integer array.
+.br
+
+retrieve_get_tag_params errors occur when:
+.br
+Malloc is unable to allocate memory for the integer array.
+.br
+
+interpret_set_tag_result errors occur when:
+.br
+Never.
+.br
+
+interpret_get_tag_result errors occur when:
+.br
+Never.
+.SH NOTES
+No notes - most relevant material covered above.
+.SH SEE ALSO
+set_tag(2), set_tag(3)
+.SH AUTHOR
+John Hodson

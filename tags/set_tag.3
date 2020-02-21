@@ -1,0 +1,53 @@
+.TH set_tag "3" "02/20/20" "Project 1 System Call Wrappers" "COP4600 Library Functions"
+
+.SH NAME
+set_tag, get_tag -- system call wrappers to set and get tag information pertaining to a process.
+.SH SYNOPSIS
+.B int set_tag(int pid, int new_tag)
+.br
+.B int get_tag(int pid)
+.SH DESCRIPTION
+set_tag(int pid, int new_tag) is a C library function that wraps a system call to set the tag of the process with int pid to int new_tag, if authorized. The tag is represented as a 32 bit unsigned integer. Bits 0 and 1 correspond to the level of a process. Bits 2 through 30 correspond to the bitmask. No user, not even the super user, may set bit 31 (always 0 as a result). The super user may set and clear any value in the bitmap or the level of any tag as they so please. A user may clear bits in their bitmap or decrease their level only.	
+.br
+
+set_tag return value:
+.br
+tag
+if successful,
+.br
+-1
+if problems.
+.br
+
+get_tag(int pid) is a C library function that wraps a system call to retrieve the tag of the process with int pid. All users are authorized to read the tag of any process so it will fail only in the scenario that a process with int pid does not exist. 
+.br
+
+get_tag return value:
+.br
+tag
+if successful,
+.br
+-1
+if problems.
+.br
+.SH ERRORS
+set_tag errors occur when:
+.br
+The desired process cannot be found.
+.br
+A user process attempts to increase their level or set a bit in their bitmap.
+.br
+A user process attempts to edit the tag of another process.
+.br 
+Any process attempts to set the MSB.
+.br
+
+get_tag errors occur when:
+.br
+The desired process cannot be found.
+.SH NOTES
+These library functions mirror the system calls with the same name and only serve as a way to invoke the system calls designed in this project via a C program. These functions are made available by including the libtags library.
+.SH SEE ALSO
+set_tag(2), harness_tag(3)
+.SH AUTHOR
+John Hodson
