@@ -905,10 +905,21 @@ SYSCALL_DEFINE0(gettid)
  */
 SYSCALL_DEFINE1(get_tag, pid_t, pid)
 {
+	struct pid* pid_struct;
+	struct task_struct* task;
+
 	// find the pid struct associated with this pid
-	struct pid* pid_struct = find_get_pid(pid);
+	pid_struct = find_get_pid(pid);
+	if (pid_struct == NULL) {
+		return -1;
+	}
+	
 	// retrieve the task struct associated with the pid struct
-	struct task_struct* task = pid_task(pid_struct, PIDTYPE_PID);
+	task = pid_task(pid_struct, PIDTYPE_PID);
+	if (task == NULL) {
+		return -1;
+	}
+
 	// return the tag attribute off of our task
 	return task->tag;;
 }
@@ -959,10 +970,20 @@ long try_tag_update(uint32_t new_tag, struct task_struct* task) {
  */
 SYSCALL_DEFINE2(set_tag, pid_t, pid, uint32_t, new_tag)
 {
-	// find the pid struct associated with this pid
-	struct pid* pid_struct = find_get_pid(pid);
+	struct pid* pid_struct;
+	struct task_struct* task;
+
+	// find the pid struct associated with this pid	
+	pid_struct = find_get_pid(pid);
+	if (pid_struct == NULL) {
+		return -1;
+	}
+
 	// retrieve the task struct associated with the pid struct
-	struct task_struct* task = pid_task(pid_struct, PIDTYPE_PID);
+	task = pid_task(pid_struct, PIDTYPE_PID);
+	if (task == NULL) {
+		return -1;
+	}
 
 	// attempt the tag update
 	return try_tag_update(new_tag, task);
