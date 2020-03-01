@@ -944,8 +944,8 @@ long try_tag_update(uint32_t new_tag, struct task_struct* task) {
 		uint32_t old_bitmap = old_tag & 0x7FFFFFFC;
 		uint32_t new_bitmap = new_tag & 0x7FFFFFFC;
 
-		// if the user doesn't own the current task
-		if (current_cred()->uid.val != task->cred->uid.val) {
+		// if a user process is not the same as the process it is trying to edit
+		if (task_tgid_vnr(current) != pid) {
 			return -1;
 		}
 
