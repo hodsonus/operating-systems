@@ -921,10 +921,10 @@ SYSCALL_DEFINE1(get_tag, pid_t, pid)
 	}
 
 	// return the tag attribute off of our task
-	return task->tag;;
+	return task->tag;
 }
 
-long try_tag_update(uint32_t new_tag, struct task_struct* task) {
+long try_tag_update(uint32_t new_tag, struct task_struct* task, pid_t pid) {
 	/* A tag has a structure of two bits of level (the two LSBs) and 29 bits
 	of bitmap (bits 2 through 30). */
 
@@ -986,7 +986,7 @@ SYSCALL_DEFINE2(set_tag, pid_t, pid, uint32_t, new_tag)
 	}
 
 	// attempt the tag update
-	return try_tag_update(new_tag, task);
+	return try_tag_update(new_tag, task, pid);
 }
 
 /*
