@@ -1205,6 +1205,9 @@ struct task_struct {
 	void				*security;
 #endif
 
+	// Tag for set_tag and get_tag systemcalls
+	int	tag;
+
 #ifdef CONFIG_GCC_PLUGIN_STACKLEAK
 	unsigned long			lowest_stack;
 	unsigned long			prev_lowest_stack;
