@@ -722,7 +722,7 @@ static void set_load_weight(struct task_struct *p, bool update_load)
 	 * SCHED_OTHER tasks have to update their load when changing their
 	 * weight
 	 */
-	if (update_load && p->sched_class == &fair_sched_class) {
+	if (update_load && (p->sched_class == &fair_sched_class || p->sched_class == &levels_sched_class)) {
 		reweight_task(p, prio);
 	} else {
 		load->weight = scale_load(sched_prio_to_weight[prio]);
@@ -2351,6 +2351,8 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
 		return -EAGAIN;
 	else if (rt_prio(p->prio))
 		p->sched_class = &rt_sched_class;
+	else if (task_has_levels_policy(p))
+		p->sched_class = &levels_sched_class;
 	else
 		p->sched_class = &fair_sched_class;
 
@@ -3891,7 +3893,11 @@ void rt_mutex_setprio(struct task_struct *p, struct task_struct *pi_task)
 			p->dl.dl_boosted = 0;
 		if (rt_prio(oldprio))
 			p->rt.timeout = 0;
-		p->sched_class = &fair_sched_class;
+
+		if (task_has_levels_policy(p))
+			p->sched_class = &levels_sched_class;
+		else
+			p->sched_class = &fair_sched_class;
 	}
 
 	p->prio = prio;
@@ -4147,6 +4153,8 @@ static void __setscheduler(struct rq *rq, struct task_struct *p,
 		p->sched_class = &dl_sched_class;
 	else if (rt_prio(p->prio))
 		p->sched_class = &rt_sched_class;
+	else if (task_has_levels_policy(p))
+		p->sched_class = &levels_sched_class;
 	else
 		p->sched_class = &fair_sched_class;
 }

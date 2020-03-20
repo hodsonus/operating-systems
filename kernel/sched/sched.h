@@ -168,6 +168,11 @@ static inline int rt_policy(int policy)
 	return policy == SCHED_FIFO || policy == SCHED_RR;
 }
 
+static inline int levels_policy(int policy)
+{
+	return policy == SCHED_LEVELS;
+}
+
 static inline int dl_policy(int policy)
 {
 	return policy == SCHED_DEADLINE;
@@ -175,7 +180,7 @@ static inline int dl_policy(int policy)
 static inline bool valid_policy(int policy)
 {
 	return idle_policy(policy) || fair_policy(policy) ||
-		rt_policy(policy) || dl_policy(policy);
+		rt_policy(policy) || dl_policy(policy) || levels_policy(policy);
 }
 
 static inline int task_has_idle_policy(struct task_struct *p)
@@ -191,6 +196,11 @@ static inline int task_has_rt_policy(struct task_struct *p)
 static inline int task_has_dl_policy(struct task_struct *p)
 {
 	return dl_policy(p->policy);
+}
+
+static inline int task_has_levels_policy(struct task_struct *p)
+{
+	return levels_policy(p->policy);
 }
 
 #define cap_scale(v, s) ((v)*(s) >> SCHED_CAPACITY_SHIFT)
@@ -1712,6 +1722,7 @@ static inline void set_curr_task(struct rq *rq, struct task_struct *curr)
 extern const struct sched_class stop_sched_class;
 extern const struct sched_class dl_sched_class;
 extern const struct sched_class rt_sched_class;
+extern const struct sched_class levels_sched_class;
 extern const struct sched_class fair_sched_class;
 extern const struct sched_class idle_sched_class;
 
