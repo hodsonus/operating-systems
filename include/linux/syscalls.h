@@ -1136,6 +1136,10 @@ asmlinkage long sys_old_mmap(struct mmap_arg_struct __user *arg);
 asmlinkage int sys_set_tag(int pid, int new_tag);
 asmlinkage int sys_get_tag(int pid);
 
+// P2 Syscalls
+asmlinkage int sys_set_alloc(int level, int new_allocation);
+asmlinkage int sys_get_alloc(int level);
+
 /*
  * Not a real system call, but a placeholder for syscalls which are
  * not implemented -- see kernel/sys_ni.c
