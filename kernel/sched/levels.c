@@ -3,91 +3,133 @@
 
 static void enqueue_task_levels(struct rq *rq, struct task_struct *p, int flags)
 {
+   /* TODO - implement me!? */
+   fair_sched_class.enqueue_task(rq, p, flags);
 }
 
 static void dequeue_task_levels(struct rq *rq, struct task_struct *p, int flags)
 {
+   /* TODO - implement me!? */
+   fair_sched_class.dequeue_task(rq, p, flags);
 }
 
 static void yield_task_levels(struct rq *rq)
 {
+   /* TODO - implement me!? */
+   fair_sched_class.yield_task(rq);
 }
 
 static bool yield_to_task_levels(struct rq *rq, struct task_struct *p, bool preempt)
 {
+   /* TODO - implement me!? */
+   return fair_sched_class.yield_to_task(rq, p, preempt);
 }
 
 static void check_preempt_wakeup_levels(struct rq *rq, struct task_struct *p, int wake_flags)
 {
+   /* TODO - implement me!? */
+   fair_sched_class.check_preempt_curr(rq, p, wake_flags);
 }
-static struct task_struct *pick_next_task_levels(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
+static struct task_struct* pick_next_task_levels(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
 {
+   /* TODO - implement me!? */
+   return fair_sched_class.pick_next_task(rq, prev, rf);
 }
 
 static void put_prev_task_levels(struct rq *rq, struct task_struct *prev)
 {
+   /* TODO - implement me!? */
+   fair_sched_class.put_prev_task(rq, prev);
 }
 
 #ifdef CONFIG_SMP
 
 static int select_task_rq_levels(struct task_struct *p, int prev_cpu, int sd_flag, int wake_flags)
 {
+   /* TODO - implement me!? */
+   return fair_sched_class.select_task_rq(p, prev_cpu, sd_flag, wake_flags);
 }
 
 static void migrate_task_rq_levels(struct task_struct *p, int new_cpu)
 {
+   /* TODO - implement me!? */
+   fair_sched_class.migrate_task_rq(p, new_cpu);
 }
 
 static void rq_online_levels(struct rq *rq)
 {
+   /* TODO - implement me!? */
+   fair_sched_class.rq_online(rq);
 }
 
 static void rq_offline_levels(struct rq *rq)
 {
+   /* TODO - implement me!? */
+   fair_sched_class.rq_offline(rq);
 }
 
 static void task_dead_levels(struct task_struct *p)
 {
+   /* TODO - implement me!? */
+   fair_sched_class.task_dead(p);
 }
 
 #endif /* COMFIG_SMP */
 
 static void set_curr_task_levels(struct rq *rq)
 {
+   /* TODO - implement me!? */
+   fair_sched_class.set_curr_task(rq);
 }
 
 static void task_tick_levels(struct rq *rq, struct task_struct *curr, int queued)
 {
+   /* TODO - implement me!? */
+   fair_sched_class.task_tick(rq, curr, queued);
 }
 
 static void task_fork_levels(struct task_struct *p)
 {
+   /* TODO - implement me!? */
+   fair_sched_class.task_fork(p);
 }
 
 static void prio_changed_levels(struct rq *rq, struct task_struct *p, int oldprio)
 {
+   /* TODO - implement me!? */
+   fair_sched_class.prio_changed(rq, p, oldprio);
 }
 
 static void switched_from_levels(struct rq *rq, struct task_struct *p)
 {
+   /* TODO - implement me!? */
+   fair_sched_class.switched_from(rq, p);
 }
 
 static void switched_to_levels(struct rq *rq, struct task_struct *p)
 {
+   /* TODO - implement me!? */
+   fair_sched_class.switched_to(rq, p);
 }
 
 static unsigned int get_rr_interval_levels(struct rq *rq, struct task_struct *task)
 {
+   /* TODO - implement me!? */
+   return fair_sched_class.get_rr_interval(rq, task);
 }
 
 static void update_curr_levels(struct rq *rq)
 {
+   /* TODO - implement me!? */
+   fair_sched_class.update_curr(rq);
 }
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
 
 static void task_change_group_levels(struct task_struct *p, int type)
 {
+   /* TODO - implement me!? */
+   fair_sched_class.task_change_group(p, type);
 }
 
 #endif
