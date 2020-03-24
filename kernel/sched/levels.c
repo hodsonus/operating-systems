@@ -1,6 +1,16 @@
 #include "sched.h"
 #include <trace/events/sched.h>
 
+void init_levels_rq(struct levels_rq *levels_rq)
+{
+   int i;
+   for (i = 0; i < 4; ++i)
+   {
+      levels_rq->alloc[i] = 10;
+      init_cfs_rq(&levels_rq->cfs[i]);
+   }
+}
+
 static void enqueue_task_levels(struct rq *rq, struct task_struct *p, int flags)
 {
    /* TODO - implement me!? */
