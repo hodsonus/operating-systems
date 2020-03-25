@@ -3359,6 +3359,7 @@ pick_next_task(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
 {
 	const struct sched_class *class;
 	struct task_struct *p;
+	int level, h_nr_running_sum = 0;
 
 	/*
 	 * Optimization: we know that if all tasks are in the fair class we can
@@ -3366,9 +3367,15 @@ pick_next_task(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
 	 * higher scheduling class, because otherwise those loose the
 	 * opportunity to pull in more work from other CPUs.
 	 */
+
+	for (level = 0; level < NUM_TASK_LEVELS; ++level)
+	{
+		h_nr_running_sum += rq->levels.cfs[level].h_nr_running;
+	}
+
 	if (likely((prev->sched_class == &idle_sched_class ||
 		    prev->sched_class == &fair_sched_class) &&
-		   rq->nr_running == rq->cfs.h_nr_running)) {
+		   rq->nr_running == h_nr_running_sum)) {
 
 		p = fair_sched_class.pick_next_task(rq, prev, rf);
 		if (unlikely(p == RETRY_TASK))
@@ -5968,7 +5975,7 @@ DECLARE_PER_CPU(cpumask_var_t, select_idle_mask);
 
 void __init sched_init(void)
 {
-	int i, j;
+	int i, j, level;
 	unsigned long alloc_size = 0, ptr;
 
 	wait_bit_init();
@@ -6037,7 +6044,10 @@ void __init sched_init(void)
 		rq->nr_running = 0;
 		rq->calc_load_active = 0;
 		rq->calc_load_update = jiffies + LOAD_FREQ;
-		init_cfs_rq(&rq->cfs);
+		for (level = 0; level < NUM_TASK_LEVELS; ++level)
+		{
+			init_cfs_rq(&rq->levels.cfs[level]);
+		}
 		init_rt_rq(&rq->rt);
 		init_dl_rq(&rq->dl);
 #ifdef CONFIG_FAIR_GROUP_SCHED
@@ -6062,9 +6072,12 @@ void __init sched_init(void)
 		 *
 		 * We achieve this by letting root_task_group's tasks sit
 		 * directly in rq->cfs (i.e root_task_group->se[] = NULL).
+		 * 
+		 * For the new levels scheduling, we place the root task group
+		 * into the run queue associated with the 0th level.
 		 */
 		init_cfs_bandwidth(&root_task_group.cfs_bandwidth);
-		init_tg_cfs_entry(&root_task_group, &rq->cfs, NULL, i, NULL);
+		init_tg_cfs_entry(&root_task_group, &rq->levels.cfs[0], NULL, i, NULL);
 #endif /* CONFIG_FAIR_GROUP_SCHED */
 
 		rq->rt.rt_runtime = def_rt_bandwidth.rt_runtime;
