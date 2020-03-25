@@ -153,6 +153,12 @@ static inline void cpu_load_update_active(struct rq *this_rq) { }
  * for each level must be greater than or equal to this constant. */
 #define MINIMUM_TOTAL_ALLOC 5
 
+/* The tag level that we multiplex first. */
+#define INIT_LEVEL 0
+
+/* The initial time in ms that is allocated to a particular level. */
+#define INIT_LEVEL_ALLOC 10
+
 /*
  * Single value that denotes runtime == period, ie unlimited time.
  */
@@ -2097,6 +2103,7 @@ print_numa_stats(struct seq_file *m, int node, unsigned long tsf,
 #endif /* CONFIG_SCHED_DEBUG */
 
 extern void init_cfs_rq(struct cfs_rq *cfs_rq);
+extern void init_levels_rq(struct levels_rq *levels_rq);
 extern void init_rt_rq(struct rt_rq *rt_rq);
 extern void init_dl_rq(struct dl_rq *dl_rq);
 

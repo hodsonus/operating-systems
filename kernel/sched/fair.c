@@ -3081,9 +3081,21 @@ static inline void update_cfs_group(struct sched_entity *se)
 
 static inline void cfs_rq_util_change(struct cfs_rq *cfs_rq, int flags)
 {
+	int level;
+	bool flag;
 	struct rq *rq = rq_of(cfs_rq);
 
-	if (&rq->cfs == cfs_rq || (flags & SCHED_CPUFREQ_MIGRATION)) {
+	flag = false;
+	for (level = 0; level < NUM_TASK_LEVELS; ++level)
+	{
+		if (&rq->levels.cfs[level] == cfs_rq)
+		{
+			flag = true;
+			break;
+		}
+	}
+
+	if (flag || (flags & SCHED_CPUFREQ_MIGRATION)) {
 		/*
 		 * There are a few boundary cases this might miss but it should
 		 * get called often enough that that should (hopefully) not be
@@ -5124,12 +5136,18 @@ static inline void unthrottle_offline_cfs_rqs(struct rq *rq) {}
 #ifdef CONFIG_SCHED_HRTICK
 static void hrtick_start_fair(struct rq *rq, struct task_struct *p)
 {
+	int level, h_nr_running_sum = 0;
 	struct sched_entity *se = &p->se;
 	struct cfs_rq *cfs_rq = cfs_rq_of(se);
 
 	SCHED_WARN_ON(task_rq(p) != rq);
 
-	if (rq->cfs.h_nr_running > 1) {
+	for (level = 0; level < NUM_TASK_LEVELS; ++level)
+	{
+		h_nr_running_sum += rq->levels.cfs[level].h_nr_running;
+	}
+
+	if (h_nr_running_sum > 1) {
 		u64 slice = sched_slice(cfs_rq, se);
 		u64 ran = se->sum_exec_runtime - se->prev_sum_exec_runtime;
 		s64 delta = slice - ran;
@@ -5197,6 +5215,7 @@ enqueue_task_fair(struct rq *rq, struct task_struct *p, int flags)
 {
 	struct cfs_rq *cfs_rq;
 	struct sched_entity *se = &p->se;
+	int level = p->tag & 3;
 
 	/*
 	 * The code below (indirectly) updates schedutil which looks at
@@ -5204,7 +5223,7 @@ enqueue_task_fair(struct rq *rq, struct task_struct *p, int flags)
 	 * Let's add the task's estimated utilization to the cfs_rq's
 	 * estimated utilization, before we update schedutil.
 	 */
-	util_est_enqueue(&rq->cfs, p);
+	util_est_enqueue(&rq->levels.cfs[level], p);
 
 	/*
 	 * If in_iowait is set, the code below may not trigger any cpufreq
@@ -5279,7 +5298,7 @@ static void dequeue_task_fair(struct rq *rq, struct task_struct *p, int flags)
 {
 	struct cfs_rq *cfs_rq;
 	struct sched_entity *se = &p->se;
-	int task_sleep = flags & DEQUEUE_SLEEP;
+	int level = p->tag & 3, task_sleep = flags & DEQUEUE_SLEEP;
 
 	for_each_sched_entity(se) {
 		cfs_rq = cfs_rq_of(se);
@@ -5324,7 +5343,7 @@ static void dequeue_task_fair(struct rq *rq, struct task_struct *p, int flags)
 	if (!se)
 		sub_nr_running(rq, 1);
 
-	util_est_dequeue(&rq->cfs, p, task_sleep);
+	util_est_dequeue(&rq->levels.cfs[level], p, task_sleep);
 	hrtick_update(rq);
 }
 
@@ -6985,7 +7004,7 @@ preempt:
 static struct task_struct *
 pick_next_task_fair(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
 {
-	struct cfs_rq *cfs_rq = &rq->cfs;
+	struct cfs_rq *cfs_rq = &rq->levels.cfs[rq->levels.current_level];
 	struct sched_entity *se;
 	struct task_struct *p;
 	int new_tasks;
@@ -10358,6 +10377,18 @@ void init_cfs_rq(struct cfs_rq *cfs_rq)
 #endif
 }
 
+void init_levels_rq(struct levels_rq *levels_rq)
+{
+	int level;
+	for (level = 0; level < NUM_TASK_LEVELS; ++level)
+	{
+		levels_rq->alloc[level] = INIT_LEVEL_ALLOC;
+		init_cfs_rq(&levels_rq->cfs[level]);
+	}
+
+	levels_rq->current_level = INIT_LEVEL;
+}
+
 #ifdef CONFIG_FAIR_GROUP_SCHED
 static void task_set_group_fair(struct task_struct *p)
 {
@@ -10582,12 +10613,18 @@ static unsigned int get_rr_interval_fair(struct rq *rq, struct task_struct *task
 {
 	struct sched_entity *se = &task->se;
 	unsigned int rr_interval = 0;
+	int level, levels_load_weight = 0;
 
 	/*
 	 * Time slice is 0 for SCHED_OTHER tasks that are on an otherwise
 	 * idle runqueue:
 	 */
-	if (rq->cfs.load.weight)
+	for (level = 0; level < NUM_TASK_LEVELS; ++level)
+	{
+		levels_load_weight += rq->levels.cfs[level].load.weight;
+	}
+
+	if (levels_load_weight)
 		rr_interval = NS_TO_JIFFIES(sched_slice(cfs_rq_of(se), se));
 
 	return rr_interval;

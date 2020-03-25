@@ -5975,7 +5975,7 @@ DECLARE_PER_CPU(cpumask_var_t, select_idle_mask);
 
 void __init sched_init(void)
 {
-	int i, j, level;
+	int i, j;
 	unsigned long alloc_size = 0, ptr;
 
 	wait_bit_init();
@@ -6044,10 +6044,7 @@ void __init sched_init(void)
 		rq->nr_running = 0;
 		rq->calc_load_active = 0;
 		rq->calc_load_update = jiffies + LOAD_FREQ;
-		for (level = 0; level < NUM_TASK_LEVELS; ++level)
-		{
-			init_cfs_rq(&rq->levels.cfs[level]);
-		}
+		init_levels_rq(&rq->levels);
 		init_rt_rq(&rq->rt);
 		init_dl_rq(&rq->dl);
 #ifdef CONFIG_FAIR_GROUP_SCHED
