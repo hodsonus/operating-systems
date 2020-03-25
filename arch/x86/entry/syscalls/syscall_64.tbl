@@ -343,7 +343,10 @@
 332	common	statx			__x64_sys_statx
 333	common	io_pgetevents		__x64_sys_io_pgetevents
 334	common	rseq			__x64_sys_rseq
-
+335	common	set_tag			__x64_sys_set_tag
+336	common	get_tag			__x64_sys_get_tag
+337	common	set_alloc		__x64_sys_set_alloc
+338	common	get_alloc		__x64_sys_get_alloc 
 #
 # x32-specific system call numbers start at 512 to avoid cache impact
 # for native 64-bit operation. The __x32_compat_sys stubs are created
