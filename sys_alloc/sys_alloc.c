@@ -2,41 +2,42 @@
 #include <linux/kernel.h>
 #include <linux/sched.h>
 #include <linux/syscalls.h>
-#include <kernel/sched/sched.h>
+#include "../kernel/sched/sched.h"
+
+#define MIN_TOT_ALLOC 5
 
 SYSCALL_DEFINE2(set_alloc, int, level, int, new_allocation)
 {
-	// if the user is not the superuser, fail
-	if (current_uid().val != 0) return -1;
-	// if the level is not valid, fail
-	if (level < 0 || level > 3) return -1; 
-
-	// calculate the new total allocated time with this change
 	struct rq *rq;
 	int i, total_alloc;
 
-	total_alloc = 0;
+	// if the user is not the superuser, fail
+	if (current_uid().val != 0) return -1;
+	// if the level is not valid, fail
+	if (level < 0 || level > 3) return -1;
+	// if the new allocation is not a valid timeslice, fail
+	if (new_allocation < 0) return -1;
+
 	rq = this_rq();
 
+	// calculate the new total allcoated time with this change
+	total_alloc = 0;
 	for (i = 0; i < 4; ++i)
 	{
-		if (i == level)
-		{
-			// if i is the proposed level to update, add the newly proposed value
-			total_alloc += new_allocation;
-		}
-		else
-		{
-			// else it is not the proposed level to update, so add the current value
-			total_alloc += rq->levels.alloc[i];
-		}
+		// if i is the proposed level to update, add the newly proposed value
+		// else it is not the proposed level to update, so add the current value
+		if (i == level) total_alloc += new_allocation;
+		else total_alloc += rq->levels.alloc[i];
 	} 
 
 	// if the proposed update puts us underneath the total minimum allocation, fail
-	if (total_alloc <= 5) return -1;
+	if (total_alloc < MIN_TOT_ALLOC) return -1;
 
 	// perform the update if we passed all of the checks
 	rq->levels.alloc[level] = new_allocation;
+
+	// return new_allocation on success
+	return new_allocation;
 }
 
 SYSCALL_DEFINE1(get_alloc, int, level)
