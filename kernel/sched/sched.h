@@ -149,6 +149,16 @@ static inline void cpu_load_update_active(struct rq *this_rq) { }
  */
 #define DL_SCALE		10
 
+ /* The minimum time that can be allocated to the levels. The sum of the allocs
+ * for each level must be greater than or equal to this constant. */
+#define MINIMUM_TOTAL_ALLOC 5
+
+/* The tag level that we multiplex first. */
+#define INIT_LEVEL 0
+
+/* The initial time in ms that is allocated to a particular level. */
+#define INIT_LEVEL_ALLOC 10
+
 /*
  * Single value that denotes runtime == period, ie unlimited time.
  */
@@ -2307,3 +2317,12 @@ unsigned long scale_irq_capacity(unsigned long util, unsigned long irq, unsigned
 #ifdef CONFIG_SMP
 extern struct static_key_false sched_energy_present;
 #endif
+
+struct levels_management {
+	int alloc[4];
+	int current_level;
+	int remaining_time;
+};
+
+extern struct levels_management levels_management;
+extern void init_levels_management(struct levels_management *levels_management);

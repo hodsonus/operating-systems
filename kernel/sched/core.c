@@ -46,6 +46,10 @@ const_debug unsigned int sysctl_sched_features =
  */
 const_debug unsigned int sysctl_sched_nr_migrate = 32;
 
+/* Contains relevant information for managing the
+ * scheduling of the different levels. */
+struct levels_management levels_management;
+
 /*
  * period over which we measure -rt task CPU usage in us.
  * default: 1s
@@ -6029,6 +6033,8 @@ void __init sched_init(void)
 	autogroup_init(&init_task);
 #endif /* CONFIG_CGROUP_SCHED */
 
+	init_levels_management(&levels_management);
+
 	for_each_possible_cpu(i) {
 		struct rq *rq;
 
@@ -7117,3 +7123,18 @@ const u32 sched_prio_to_wmult[40] = {
 };
 
 #undef CREATE_TRACE_POINTS
+
+void init_levels_management(struct levels_management *levels_management)
+{
+	int level;
+
+	if (!levels_management) return;
+
+	levels_management->current_level = 0;
+	levels_management->remaining_time = INIT_LEVEL;
+
+	for (level = 0; level < NUM_TASK_LEVELS; ++level)
+	{
+		levels_management->alloc[level] = INIT_LEVEL_ALLOC;
+	}
+}

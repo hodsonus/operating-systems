@@ -112,6 +112,8 @@ struct task_group;
 					 (task->flags & PF_FROZEN) == 0 && \
 					 (task->state & TASK_NOLOAD) == 0)
 
+#define NUM_TASK_LEVELS 4 
+
 #ifdef CONFIG_DEBUG_ATOMIC_SLEEP
 
 /*
@@ -1204,6 +1206,8 @@ struct task_struct {
 	/* Used by LSM modules for access restriction: */
 	void				*security;
 #endif
+
+	int tag;
 
 #ifdef CONFIG_GCC_PLUGIN_STACKLEAK
 	unsigned long			lowest_stack;
