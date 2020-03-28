@@ -6039,7 +6039,7 @@ void __init sched_init(void)
 		struct levels_rq *levels_rq;
 		int level;
 
-		levels_rq = cpu_rq(i);
+		levels_rq = cpu_levels_rq(i);
 
 		for (level = 0; level < NUM_TASK_LEVELS; ++level) {
 			struct rq *rq;

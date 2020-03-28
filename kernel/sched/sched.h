@@ -1000,11 +1000,12 @@ static inline void update_idle_core(struct rq *rq) { }
 
 DECLARE_PER_CPU_SHARED_ALIGNED(struct levels_rq, runqueues);
 
-#define cpu_rq(cpu)		(&per_cpu(runqueues, (cpu))) // returns *levels_rq, previously *rq
-#define this_rq()		this_cpu_ptr(&runqueues) // returns *levels_rq, previously *rq
-#define task_rq(p)		cpu_rq(task_cpu(p)) // returns *levels_rq, previously *rq
-#define cpu_curr(cpu)	cpu_rq(cpu)->rqs[levels_management.current_level].curr // returns *task_struct, same as before
-#define raw_rq()		raw_cpu_ptr(&runqueues) // returns *levels_rq, previously *rq
+#define cpu_levels_rq(cpu)	(&per_cpu(runqueues, (cpu))) // returns *levels_rq
+#define cpu_rq(cpu)			(&cpu_levels_rq(cpu)->rqs[levels_management.current_level]) // returns *rq
+#define this_rq()			(&this_cpu_ptr(&runqueues)->rqs[levels_management.current_level]) // returns *rq
+#define task_rq(p)			(&cpu_levels_rq(task_cpu(p))->rqs[ (p)->tag & 3 ]) // returns *rq
+#define cpu_curr(cpu)		cpu_rq(cpu)->curr // returns *task_struct
+#define raw_rq()			(&raw_cpu_ptr(&runqueues)->rqs[levels_management.current_level]) // returns *rq
 
 extern void update_rq_clock(struct rq *rq);
 
