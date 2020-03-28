@@ -82,6 +82,7 @@
 #endif
 
 struct rq;
+struct levels_rq;
 struct cpuidle_state;
 
 /* task_struct::on_rq states: */
@@ -92,6 +93,14 @@ extern __read_mostly int scheduler_running;
 
 extern unsigned long calc_load_update;
 extern atomic_long_t calc_load_tasks;
+
+struct levels_management {
+	int alloc[4];
+	int current_level;
+	int remaining_time;
+};
+extern struct levels_management levels_management;
+extern void init_levels_management(struct levels_management *levels_management);
 
 extern void calc_global_load_tick(struct rq *this_rq);
 extern long calc_load_fold_active(struct rq *this_rq, long adjust);
@@ -961,6 +970,11 @@ struct rq {
 #endif
 };
 
+/* Takes the place of the per-cpu rq that is traditionally used in the scheduler. */
+struct levels_rq {
+	struct rq rqs[NUM_TASK_LEVELS];
+};
+
 static inline int cpu_of(struct rq *rq)
 {
 #ifdef CONFIG_SMP
@@ -984,13 +998,13 @@ static inline void update_idle_core(struct rq *rq)
 static inline void update_idle_core(struct rq *rq) { }
 #endif
 
-DECLARE_PER_CPU_SHARED_ALIGNED(struct rq, runqueues);
+DECLARE_PER_CPU_SHARED_ALIGNED(struct levels_rq, runqueues);
 
-#define cpu_rq(cpu)		(&per_cpu(runqueues, (cpu)))
-#define this_rq()		this_cpu_ptr(&runqueues)
-#define task_rq(p)		cpu_rq(task_cpu(p))
-#define cpu_curr(cpu)		(cpu_rq(cpu)->curr)
-#define raw_rq()		raw_cpu_ptr(&runqueues)
+#define cpu_rq(cpu)		(&per_cpu(runqueues, (cpu))) // returns *levels_rq, previously *rq
+#define this_rq()		this_cpu_ptr(&runqueues) // returns *levels_rq, previously *rq
+#define task_rq(p)		cpu_rq(task_cpu(p)) // returns *levels_rq, previously *rq
+#define cpu_curr(cpu)	cpu_rq(cpu)->rqs[levels_management.current_level].curr // returns *task_struct, same as before
+#define raw_rq()		raw_cpu_ptr(&runqueues) // returns *levels_rq, previously *rq
 
 extern void update_rq_clock(struct rq *rq);
 
@@ -2317,12 +2331,3 @@ unsigned long scale_irq_capacity(unsigned long util, unsigned long irq, unsigned
 #ifdef CONFIG_SMP
 extern struct static_key_false sched_energy_present;
 #endif
-
-struct levels_management {
-	int alloc[4];
-	int current_level;
-	int remaining_time;
-};
-
-extern struct levels_management levels_management;
-extern void init_levels_management(struct levels_management *levels_management);

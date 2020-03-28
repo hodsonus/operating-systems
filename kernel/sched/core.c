@@ -22,7 +22,7 @@
 #define CREATE_TRACE_POINTS
 #include <trace/events/sched.h>
 
-DEFINE_PER_CPU_SHARED_ALIGNED(struct rq, runqueues);
+DEFINE_PER_CPU_SHARED_ALIGNED(struct levels_rq, runqueues);
 
 #if defined(CONFIG_SCHED_DEBUG) && defined(CONFIG_JUMP_LABEL)
 /*
@@ -6036,76 +6036,83 @@ void __init sched_init(void)
 	init_levels_management(&levels_management);
 
 	for_each_possible_cpu(i) {
-		struct rq *rq;
+		struct levels_rq *levels_rq;
+		int level;
 
-		rq = cpu_rq(i);
-		raw_spin_lock_init(&rq->lock);
-		rq->nr_running = 0;
-		rq->calc_load_active = 0;
-		rq->calc_load_update = jiffies + LOAD_FREQ;
-		init_cfs_rq(&rq->cfs);
-		init_rt_rq(&rq->rt);
-		init_dl_rq(&rq->dl);
+		levels_rq = cpu_rq(i);
+
+		for (level = 0; level < NUM_TASK_LEVELS; ++level) {
+			struct rq *rq;
+
+			rq = &levels_rq->rqs[level];
+			raw_spin_lock_init(&rq->lock);
+			rq->nr_running = 0;
+			rq->calc_load_active = 0;
+			rq->calc_load_update = jiffies + LOAD_FREQ;
+			init_cfs_rq(&rq->cfs);
+			init_rt_rq(&rq->rt);
+			init_dl_rq(&rq->dl);
 #ifdef CONFIG_FAIR_GROUP_SCHED
-		root_task_group.shares = ROOT_TASK_GROUP_LOAD;
-		INIT_LIST_HEAD(&rq->leaf_cfs_rq_list);
-		rq->tmp_alone_branch = &rq->leaf_cfs_rq_list;
-		/*
-		 * How much CPU bandwidth does root_task_group get?
-		 *
-		 * In case of task-groups formed thr' the cgroup filesystem, it
-		 * gets 100% of the CPU resources in the system. This overall
-		 * system CPU resource is divided among the tasks of
-		 * root_task_group and its child task-groups in a fair manner,
-		 * based on each entity's (task or task-group's) weight
-		 * (se->load.weight).
-		 *
-		 * In other words, if root_task_group has 10 tasks of weight
-		 * 1024) and two child groups A0 and A1 (of weight 1024 each),
-		 * then A0's share of the CPU resource is:
-		 *
-		 *	A0's bandwidth = 1024 / (10*1024 + 1024 + 1024) = 8.33%
-		 *
-		 * We achieve this by letting root_task_group's tasks sit
-		 * directly in rq->cfs (i.e root_task_group->se[] = NULL).
-		 */
-		init_cfs_bandwidth(&root_task_group.cfs_bandwidth);
-		init_tg_cfs_entry(&root_task_group, &rq->cfs, NULL, i, NULL);
+			root_task_group.shares = ROOT_TASK_GROUP_LOAD;
+			INIT_LIST_HEAD(&rq->leaf_cfs_rq_list);
+			rq->tmp_alone_branch = &rq->leaf_cfs_rq_list;
+			/*
+			 * How much CPU bandwidth does root_task_group get?
+			 *
+			 * In case of task-groups formed thr' the cgroup filesystem, it
+			 * gets 100% of the CPU resources in the system. This overall
+			 * system CPU resource is divided among the tasks of
+			 * root_task_group and its child task-groups in a fair manner,
+			 * based on each entity's (task or task-group's) weight
+			 * (se->load.weight).
+			 *
+			 * In other words, if root_task_group has 10 tasks of weight
+			 * 1024) and two child groups A0 and A1 (of weight 1024 each),
+			 * then A0's share of the CPU resource is:
+			 *
+			 *	A0's bandwidth = 1024 / (10*1024 + 1024 + 1024) = 8.33%
+			 *
+			 * We achieve this by letting root_task_group's tasks sit
+			 * directly in rq->cfs (i.e root_task_group->se[] = NULL).
+			 */
+			init_cfs_bandwidth(&root_task_group.cfs_bandwidth);
+			init_tg_cfs_entry(&root_task_group, &rq->cfs, NULL, i, NULL);
 #endif /* CONFIG_FAIR_GROUP_SCHED */
 
-		rq->rt.rt_runtime = def_rt_bandwidth.rt_runtime;
+			rq->rt.rt_runtime = def_rt_bandwidth.rt_runtime;
 #ifdef CONFIG_RT_GROUP_SCHED
-		init_tg_rt_entry(&root_task_group, &rq->rt, NULL, i, NULL);
+			init_tg_rt_entry(&root_task_group, &rq->rt, NULL, i, NULL);
 #endif
 
-		for (j = 0; j < CPU_LOAD_IDX_MAX; j++)
-			rq->cpu_load[j] = 0;
+			for (j = 0; j < CPU_LOAD_IDX_MAX; j++)
+				rq->cpu_load[j] = 0;
 
 #ifdef CONFIG_SMP
-		rq->sd = NULL;
-		rq->rd = NULL;
-		rq->cpu_capacity = rq->cpu_capacity_orig = SCHED_CAPACITY_SCALE;
-		rq->balance_callback = NULL;
-		rq->active_balance = 0;
-		rq->next_balance = jiffies;
-		rq->push_cpu = 0;
-		rq->cpu = i;
-		rq->online = 0;
-		rq->idle_stamp = 0;
-		rq->avg_idle = 2*sysctl_sched_migration_cost;
-		rq->max_idle_balance_cost = sysctl_sched_migration_cost;
+			rq->sd = NULL;
+			rq->rd = NULL;
+			rq->cpu_capacity = rq->cpu_capacity_orig = SCHED_CAPACITY_SCALE;
+			rq->balance_callback = NULL;
+			rq->active_balance = 0;
+			rq->next_balance = jiffies;
+			rq->push_cpu = 0;
+			rq->cpu = i;
+			rq->online = 0;
+			rq->idle_stamp = 0;
+			rq->avg_idle = 2*sysctl_sched_migration_cost;
+			rq->max_idle_balance_cost = sysctl_sched_migration_cost;
 
-		INIT_LIST_HEAD(&rq->cfs_tasks);
+			INIT_LIST_HEAD(&rq->cfs_tasks);
 
-		rq_attach_root(rq, &def_root_domain);
+			rq_attach_root(rq, &def_root_domain);
 #ifdef CONFIG_NO_HZ_COMMON
-		rq->last_load_update_tick = jiffies;
-		rq->last_blocked_load_update_tick = jiffies;
-		atomic_set(&rq->nohz_flags, 0);
+			rq->last_load_update_tick = jiffies;
+			rq->last_blocked_load_update_tick = jiffies;
+			atomic_set(&rq->nohz_flags, 0);
 #endif
 #endif /* CONFIG_SMP */
-		hrtick_rq_init(rq);
-		atomic_set(&rq->nr_iowait, 0);
+			hrtick_rq_init(rq);
+			atomic_set(&rq->nr_iowait, 0);
+		}
 	}
 
 	set_load_weight(&init_task, false);
