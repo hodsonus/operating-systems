@@ -3053,6 +3053,14 @@ unsigned long long task_sched_runtime(struct task_struct *p)
  */
 void scheduler_tick(void)
 {
+	--levels_management.remaining_ticks;
+
+	if (levels_management.remaining_ticks <= 0)
+	{
+		levels_management.current_level = (levels_management.current_level + 1) % 4;
+		levels_management.remaining_ticks = levels_management.alloc[levels_management.current_level] * HZ / 1000;
+	}
+
 	int cpu = smp_processor_id();
 	struct rq *rq = cpu_rq(cpu);
 	struct task_struct *curr = rq->curr;
@@ -7137,11 +7145,15 @@ void init_levels_management(struct levels_management *levels_management)
 
 	if (!levels_management) return;
 
-	levels_management->current_level = 0;
-	levels_management->remaining_time = INIT_LEVEL;
-
+	// Initialize the allocation for each level in ms
 	for (level = 0; level < NUM_TASK_LEVELS; ++level)
 	{
 		levels_management->alloc[level] = INIT_LEVEL_ALLOC;
 	}
+
+	// Initialize the current level
+	levels_management->current_level = INIT_LEVEL;
+
+	// Initialize the remaining ticks in this level
+	levels_management->remaining_ticks = levels_management->alloc[levels_management->current_level] * HZ / 1000;;
 }

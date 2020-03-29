@@ -97,7 +97,7 @@ extern atomic_long_t calc_load_tasks;
 struct levels_management {
 	int alloc[4];
 	int current_level;
-	int remaining_time;
+	int remaining_ticks;
 };
 extern struct levels_management levels_management;
 extern void init_levels_management(struct levels_management *levels_management);
