@@ -3054,28 +3054,41 @@ unsigned long long task_sched_runtime(struct task_struct *p)
 void scheduler_tick(void)
 {
 	volatile int temp_level;
-
-	--levels_management.remaining_ticks;
-
-	if (levels_management.remaining_ticks <= 0)
-	{
-		// preempt current process on CPU
-
-		// set the current process as the CURR on the new RQ
-
-		temp_level = (levels_management.current_level + 1) % NUM_TASK_LEVELS;
-		levels_management.current_level = temp_level;
-		levels_management.remaining_ticks = levels_management.alloc[levels_management.current_level] * HZ / 1000;
-	}
-
+	struct rq_flags rf;
+	struct task_struct *curr;
 	int cpu = smp_processor_id();
 	struct rq *rq = cpu_rq(cpu);
-	struct task_struct *curr = rq->curr;
-	struct rq_flags rf;
 
 	sched_clock_tick();
 
 	rq_lock(rq, &rf);
+
+	// decrement the remaining scheduler ticks for this level
+	--levels_management.remaining_ticks;
+
+	if (levels_management.remaining_ticks <= 0)
+	{
+		// preempt current process on CPU, replacing with IDLE
+		// also unlocks the rq
+		rq = context_switch(rq, rq->curr, rq->idle, &rf);
+
+		// update the current level, and set the amount of ticks alloted
+		temp_level = (levels_management.current_level + 1) % NUM_TASK_LEVELS;
+		levels_management.current_level = temp_level;
+		levels_management.remaining_ticks = levels_management.alloc[levels_management.current_level] * HZ / 1000;
+
+		// update the rq pointer and lock the structure
+		rq = cpu_rq(cpu);
+		rq_lock(rq, &rf);
+
+		// setup the new runqueue with the CPU
+		rq = context_switch(rq, rq->idle, rq->curr, &rf);
+
+		// and lock it again
+		rq_lock(rq, &rf);
+	}
+
+	curr = rq->curr;
 
 	update_rq_clock(rq);
 	curr->sched_class->task_tick(rq, curr, 0);
