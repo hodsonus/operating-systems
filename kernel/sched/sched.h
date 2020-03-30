@@ -95,7 +95,7 @@ extern unsigned long calc_load_update;
 extern atomic_long_t calc_load_tasks;
 
 struct levels_management {
-	int alloc[4];
+	int alloc[NUM_TASK_LEVELS];
 	int current_level;
 	int remaining_ticks;
 };

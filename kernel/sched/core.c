@@ -3053,11 +3053,18 @@ unsigned long long task_sched_runtime(struct task_struct *p)
  */
 void scheduler_tick(void)
 {
+	volatile int temp_level;
+
 	--levels_management.remaining_ticks;
 
 	if (levels_management.remaining_ticks <= 0)
 	{
-		levels_management.current_level = (levels_management.current_level + 1) % NUM_TASK_LEVELS;
+		// preempt current process on CPU
+
+		// set the current process as the CURR on the new RQ
+
+		temp_level = (levels_management.current_level + 1) % NUM_TASK_LEVELS;
+		levels_management.current_level = temp_level;
 		levels_management.remaining_ticks = levels_management.alloc[levels_management.current_level] * HZ / 1000;
 	}
 
