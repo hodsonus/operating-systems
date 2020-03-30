@@ -3057,7 +3057,7 @@ void scheduler_tick(void)
 
 	if (levels_management.remaining_ticks <= 0)
 	{
-		levels_management.current_level = (levels_management.current_level + 1) % 4;
+		// levels_management.current_level = (levels_management.current_level + 1) % 4;
 		levels_management.remaining_ticks = levels_management.alloc[levels_management.current_level] * HZ / 1000;
 	}
 
