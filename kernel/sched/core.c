@@ -3057,7 +3057,7 @@ void scheduler_tick(void)
 
 	if (levels_management.remaining_ticks <= 0)
 	{
-		// levels_management.current_level = (levels_management.current_level + 1) % 4;
+		levels_management.current_level = (levels_management.current_level + 1) % NUM_TASK_LEVELS;
 		levels_management.remaining_ticks = levels_management.alloc[levels_management.current_level] * HZ / 1000;
 	}
 
@@ -6049,7 +6049,7 @@ void __init sched_init(void)
 
 		levels_rq = cpu_levels_rq(i);
 
-		for (level = NUM_TASK_LEVELS-1; level >= 0; --level) {
+		for (level = 0; level < NUM_TASK_LEVELS; ++level) {
 			struct rq *rq;
 
 			rq = &levels_rq->rqs[level];
