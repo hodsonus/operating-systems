@@ -2864,9 +2864,6 @@ context_switch(struct rq *rq, struct task_struct *prev,
 
 	rq->clock_update_flags &= ~(RQCF_ACT_SKIP|RQCF_REQ_SKIP);
 
-
-	pr_info("A7\n");
-	mdelay(5000);
 	prepare_lock_switch(rq, next, rf);
 
 	pr_info("A8\n");
@@ -3124,7 +3121,7 @@ void scheduler_tick(void)
 		mdelay(5000);
 
 		// swap the current task on the CPU with the idle task (also unlocks rq)
-		rq = context_switch(rq, rq->curr, rq->idle, &rf);
+		// rq = context_switch(rq, rq->curr, rq->idle, &rf);
 
 		pr_info("5\n");
 		mdelay(5000);
@@ -3141,16 +3138,6 @@ void scheduler_tick(void)
 		// update the rq pointer to the current (new) rq
 		rq = cpu_rq(cpu);
 		pr_info("8\n");
-		mdelay(5000);
-		// lock the current rq
-		rq_lock(rq, &rf);
-		pr_info("9\n");
-		mdelay(5000);
-
-		// swap the current task on the CPU with the idle task (also unlocks rq)
-		// this should trigger a context switch to the proper task
-		rq = context_switch(rq, rq->curr, rq->idle, &rf);
-		pr_info("10\n");
 		mdelay(5000);
 	}
 
