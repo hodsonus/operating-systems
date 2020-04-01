@@ -3129,8 +3129,8 @@ void scheduler_tick(void)
 
 	pr_info("5\n");
 	pr_info("rq addr=%px", rq);
-	pr_info("curr addr=%px", curr);
-	mdelay(5000);
+	pr_info("**********curr addr=%px**********", curr);
+	mdelay(10000);
 	curr->sched_class->task_tick(rq, curr, 0);
 
 	pr_info("6\n");
