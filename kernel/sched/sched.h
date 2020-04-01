@@ -93,6 +93,14 @@ extern __read_mostly int scheduler_running;
 extern unsigned long calc_load_update;
 extern atomic_long_t calc_load_tasks;
 
+struct levels_management {
+	int alloc[NUM_TASK_LEVELS];
+	int current_level;
+	int remaining_ticks;
+};
+extern struct levels_management levels_management;
+extern void init_levels_management(struct levels_management *levels_management);
+
 extern void calc_global_load_tick(struct rq *this_rq);
 extern long calc_load_fold_active(struct rq *this_rq, long adjust);
 
@@ -148,6 +156,16 @@ static inline void cpu_load_update_active(struct rq *this_rq) { }
  * 9  -> just above 0.5us
  */
 #define DL_SCALE		10
+
+/* The minimum time that can be allocated to the levels. The sum of the allocs
+* for each level must be greater than or equal to this constant. */
+#define MINIMUM_TOTAL_ALLOC 5
+
+/* The tag level that we multiplex first. */
+#define INIT_LEVEL 0
+
+/* The initial time in ms that is allocated to a particular level. */
+#define INIT_LEVEL_ALLOC 10
 
 /*
  * Single value that denotes runtime == period, ie unlimited time.
