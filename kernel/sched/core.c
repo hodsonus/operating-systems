@@ -3073,9 +3073,9 @@ void scheduler_tick(void)
 		rq = cpu_rq(cpu);
 	}
 
-	rq_lock(rq, &rf);
-
 	sched_clock_tick();
+
+	rq_lock(rq, &rf);
 
 	curr = rq->curr;
 	if (unlikely(!curr))
