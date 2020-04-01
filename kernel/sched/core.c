@@ -3108,12 +3108,6 @@ void scheduler_tick(void)
 		pr_info("2\n");
 		mdelay(5000);
 
-		// lock the current rq
-		rq_lock(rq, &rf);
-
-		pr_info("3\n");
-		mdelay(5000);
-
 		// put the currently running task back into the rq
 		put_prev_task(rq, rq->curr);
 
@@ -3143,38 +3137,62 @@ void scheduler_tick(void)
 
 	rq_lock(rq, &rf);
 
-	pr_info("11\n");
+	pr_info("9\n");
 	mdelay(5000);
 
 	sched_clock_tick();
 
-	pr_info("12\n");
+	pr_info("10\n");
 	mdelay(5000);
 
 	curr = rq->curr;
 
-	pr_info("13\n");
+	pr_info("11\n");
 	mdelay(5000);
 
 	update_rq_clock(rq);
+
+	pr_info("12\n");
+	mdelay(5000);
 	curr->sched_class->task_tick(rq, curr, 0);
+
+	pr_info("13\n");
+	mdelay(5000);
 	cpu_load_update_active(rq);
-	calc_global_load_tick(rq);
-	psi_task_tick(rq);
 
 	pr_info("14\n");
+	mdelay(5000);
+	calc_global_load_tick(rq);
+
+	pr_info("15\n");
+	mdelay(5000);
+	psi_task_tick(rq);
+
+	pr_info("16\n");
 	mdelay(5000);
 
 	rq_unlock(rq, &rf);
 
-	pr_info("15\n");
+	pr_info("17\n");
 	mdelay(5000);
 
 	perf_event_task_tick();
 
+
+	pr_info("18\n");
+	mdelay(5000);
+
 #ifdef CONFIG_SMP
 	rq->idle_balance = idle_cpu(cpu);
+
+
+	pr_info("19\n");
+	mdelay(5000);
 	trigger_load_balance(rq);
+
+
+	pr_info("20\n");
+	mdelay(5000);
 #endif
 }
 
