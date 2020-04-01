@@ -3101,9 +3101,10 @@ void scheduler_tick(void)
 		// set the amount of ticks allotted for this runqueue
 		levels_management.remaining_ticks = levels_management.alloc[levels_management.current_level] * HZ / 1000;
 
+		pr_info("old rq addr=%px", rq);
 		// update the rq pointer to the current (new) rq
 		rq = cpu_rq(cpu);
-		pr_info("updated level, ");
+		pr_info("new rq addr=%px", rq);
 	}
 
 	pr_info("current_level=%d\n",levels_management.current_level);
@@ -3127,6 +3128,8 @@ void scheduler_tick(void)
 	update_rq_clock(rq);
 
 	pr_info("5\n");
+	pr_info("rq addr=%px", rq);
+	pr_info("curr addr=%px", curr);
 	mdelay(5000);
 	curr->sched_class->task_tick(rq, curr, 0);
 
