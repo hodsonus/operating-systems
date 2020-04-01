@@ -3455,7 +3455,7 @@ static void __sched notrace __schedule(bool preempt)
 	unsigned long *switch_count;
 	struct rq_flags rf;
 	struct rq *rq;
-	int cpu;
+	int cpu, num_tasks_observed;
 
 	cpu = smp_processor_id();
 	rq = cpu_rq(cpu);
@@ -3513,7 +3513,19 @@ static void __sched notrace __schedule(bool preempt)
 		switch_count = &prev->nvcsw;
 	}
 
-	next = pick_next_task(rq, prev, &rf);
+	next = NULL;
+	num_tasks_observed = 0;
+	for (; tag_of(next) != levels_management.current_level && ++num_tasks_observed < rq->nr_running; prev = next)
+	{
+		pr_info("picking next task");
+		mdelay(5000);
+		next = pick_next_task(rq, prev, &rf);
+		pr_info("picked next task");
+		mdelay(5000);
+		pr_info("task level=%d",(next->tag)&3);
+		mdelay(5000);
+	}
+
 	clear_tsk_need_resched(prev);
 	clear_preempt_need_resched();
 
