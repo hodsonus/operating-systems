@@ -2876,9 +2876,13 @@ context_switch(struct rq *rq, struct task_struct *prev,
 
 	/* Here we just switch the register state and the stack. */
 	switch_to(prev, next, prev);
+
+	pr_info("A9\n");
+	mdelay(5000);
+
 	barrier();
 	
-	pr_info("A9\n");
+	pr_info("A10\n");
 	mdelay(5000);
 
 	return finish_task_switch(prev);
