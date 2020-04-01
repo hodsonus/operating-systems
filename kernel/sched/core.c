@@ -3129,7 +3129,15 @@ void scheduler_tick(void)
 
 	pr_info("5\n");
 	pr_info("rq addr=%px", rq);
-	pr_info("**********curr addr=%px**********", curr);
+
+	if (!curr)
+	{
+		pr_info("curr is null!!Q!!!!!");
+	}
+	else
+	{
+		pr_info("curr is valid.");
+	}
 	mdelay(10000);
 	curr->sched_class->task_tick(rq, curr, 0);
 
