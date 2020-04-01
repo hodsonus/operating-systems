@@ -3086,112 +3086,86 @@ unsigned long long task_sched_runtime(struct task_struct *p)
  */
 void scheduler_tick(void)
 {
-	pr_info("-1\n");
-	mdelay(5000);
-
 	struct rq_flags rf;
 	struct task_struct *curr;
 	int cpu = smp_processor_id();
 	struct rq *rq = cpu_rq(cpu);
 
-	pr_info("0\n");
-	mdelay(5000);
-
 	// decrement the remaining scheduler ticks for this level
 	--levels_management.remaining_ticks;
 
-	pr_info("1- current_level=%d\n",levels_management.current_level);
-	mdelay(5000);
-
 	if (levels_management.remaining_ticks <= 0)
 	{
-		pr_info("2\n");
-		mdelay(5000);
-
-		// put the currently running task back into the rq
-		put_prev_task(rq, rq->curr);
-
-		pr_info("4\n");
-		mdelay(5000);
-
-		// swap the current task on the CPU with the idle task (also unlocks rq)
-		// rq = context_switch(rq, rq->curr, rq->idle, &rf);
-
-		pr_info("5\n");
-		mdelay(5000);
-
 		// update the current level
 		levels_management.current_level = (levels_management.current_level + 1) % NUM_TASK_LEVELS;
-		pr_info("6\n");
-		mdelay(5000);
 		// set the amount of ticks allotted for this runqueue
 		levels_management.remaining_ticks = levels_management.alloc[levels_management.current_level] * HZ / 1000;
-		pr_info("7\n");
-		mdelay(5000);
 
 		// update the rq pointer to the current (new) rq
 		rq = cpu_rq(cpu);
-		pr_info("8\n");
-		mdelay(5000);
+		pr_info("updated level, ");
 	}
+
+	pr_info("current_level=%d\n",levels_management.current_level);
+	mdelay(5000);
 
 	rq_lock(rq, &rf);
 
-	pr_info("9\n");
+	pr_info("2\n");
 	mdelay(5000);
 
 	sched_clock_tick();
 
-	pr_info("10\n");
+	pr_info("3\n");
 	mdelay(5000);
 
 	curr = rq->curr;
 
-	pr_info("11\n");
+	pr_info("4\n");
 	mdelay(5000);
 
 	update_rq_clock(rq);
 
-	pr_info("12\n");
+	pr_info("5\n");
 	mdelay(5000);
 	curr->sched_class->task_tick(rq, curr, 0);
 
-	pr_info("13\n");
+	pr_info("6\n");
 	mdelay(5000);
 	cpu_load_update_active(rq);
 
-	pr_info("14\n");
+	pr_info("7\n");
 	mdelay(5000);
 	calc_global_load_tick(rq);
 
-	pr_info("15\n");
+	pr_info("8\n");
 	mdelay(5000);
 	psi_task_tick(rq);
 
-	pr_info("16\n");
+	pr_info("9\n");
 	mdelay(5000);
 
 	rq_unlock(rq, &rf);
 
-	pr_info("17\n");
+	pr_info("10\n");
 	mdelay(5000);
 
 	perf_event_task_tick();
 
 
-	pr_info("18\n");
+	pr_info("11\n");
 	mdelay(5000);
 
 #ifdef CONFIG_SMP
 	rq->idle_balance = idle_cpu(cpu);
 
 
-	pr_info("19\n");
+	pr_info("12\n");
 	mdelay(5000);
 	trigger_load_balance(rq);
 
 
-	pr_info("20\n");
+	pr_info("13\n");
 	mdelay(5000);
 #endif
 }
