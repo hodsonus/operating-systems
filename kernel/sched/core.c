@@ -3125,7 +3125,9 @@ void scheduler_tick(void)
 	pr_info("4\n");
 	if (!curr)
 	{
-		pr_info("curr is null!!Q!!!!!\n");
+		curr = rq->idle;
+		pr_info("curr was null, updating to idle thread");
+		if (!(rq->idle)) pr_info("DANGER - IDLE NULL");
 	}
 	else
 	{
