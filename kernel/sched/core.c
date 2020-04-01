@@ -2813,7 +2813,13 @@ context_switch(struct rq *rq, struct task_struct *prev,
 {
 	struct mm_struct *mm, *oldmm;
 
+	pr_info("A0\n");
+	mdelay(5000);
+
 	prepare_task_switch(rq, prev, next);
+
+	pr_info("A1\n");
+	mdelay(5000);
 
 	mm = next->mm;
 	oldmm = prev->active_mm;
@@ -2822,6 +2828,8 @@ context_switch(struct rq *rq, struct task_struct *prev,
 	 * combine the page table reload and the switch backend into
 	 * one hypercall.
 	 */
+	pr_info("A2\n");
+	mdelay(5000);
 	arch_start_context_switch(prev);
 
 	/*
@@ -2831,25 +2839,43 @@ context_switch(struct rq *rq, struct task_struct *prev,
 	 * membarrier after storing to rq->curr, before returning to
 	 * user-space.
 	 */
+
+	pr_info("A3\n");
+	mdelay(5000);
 	if (!mm) {
+
+		pr_info("A4\n");
+		mdelay(5000);
 		next->active_mm = oldmm;
 		mmgrab(oldmm);
 		enter_lazy_tlb(oldmm, next);
-	} else
+	} else {
+			pr_info("A5\n");
+	mdelay(5000);
 		switch_mm_irqs_off(oldmm, mm, next);
+	}
 
 	if (!prev->mm) {
+			pr_info("A6\n");
+	mdelay(5000);
 		prev->active_mm = NULL;
 		rq->prev_mm = oldmm;
 	}
 
 	rq->clock_update_flags &= ~(RQCF_ACT_SKIP|RQCF_REQ_SKIP);
 
+
+	pr_info("A7\n");
+	mdelay(5000);
 	prepare_lock_switch(rq, next, rf);
 
+	pr_info("A8\n");
+	mdelay(5000);
 	/* Here we just switch the register state and the stack. */
 	switch_to(prev, next, prev);
 	barrier();
+		pr_info("A9\n");
+	mdelay(5000);
 
 	return finish_task_switch(prev);
 }
