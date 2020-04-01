@@ -5331,6 +5331,9 @@ static void __init cgroup_init_subsys(struct cgroup_subsys *ss, bool early)
 	idr_init(&ss->css_idr);
 	INIT_LIST_HEAD(&ss->cfts);
 
+	pr_info("%d",ss->root);
+	mdelay(5000);
+
 	/* Create the root cgroup state for this subsystem */
 	ss->root = &cgrp_dfl_root;
 	css = ss->css_alloc(cgroup_css(&cgrp_dfl_root.cgrp, ss));
