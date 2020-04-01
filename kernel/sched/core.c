@@ -7153,3 +7153,8 @@ void init_levels_management(struct levels_management *levels_management)
 	// Initialize the remaining ticks in this level
 	levels_management->remaining_ticks = levels_management->alloc[levels_management->current_level] * HZ / 1000;
 }
+
+int level_of(task_struct *p)
+{
+	return p->tag & 3;
+}

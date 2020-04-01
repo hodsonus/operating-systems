@@ -101,6 +101,8 @@ struct levels_management {
 extern struct levels_management levels_management;
 extern void init_levels_management(struct levels_management *levels_management);
 
+extern int level_of(struct task_struct *p);
+
 extern void calc_global_load_tick(struct rq *this_rq);
 extern long calc_load_fold_active(struct rq *this_rq, long adjust);
 
