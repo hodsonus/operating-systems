@@ -11,6 +11,8 @@
 
 #include <linux/kcov.h>
 
+#include <linux/delay.h>
+
 #include <asm/switch_to.h>
 #include <asm/tlb.h>
 
@@ -3515,7 +3517,7 @@ static void __sched notrace __schedule(bool preempt)
 
 	next = NULL;
 	num_tasks_observed = 0;
-	for (; tag_of(next) != levels_management.current_level && ++num_tasks_observed < rq->nr_running; prev = next)
+	for (; level_of(next) != levels_management.current_level && ++num_tasks_observed < rq->nr_running; prev = next)
 	{
 		pr_info("picking next task");
 		mdelay(5000);
@@ -7166,7 +7168,7 @@ void init_levels_management(struct levels_management *levels_management)
 	levels_management->remaining_ticks = levels_management->alloc[levels_management->current_level] * HZ / 1000;
 }
 
-int level_of(task_struct *p)
+int level_of(struct task_struct *p)
 {
 	return p->tag & 3;
 }
