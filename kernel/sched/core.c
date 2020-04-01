@@ -3453,8 +3453,6 @@ again:
  */
 static void __sched notrace __schedule(bool preempt)
 {
-	pr_info("A0");
-	mdelay(5000);
 	struct task_struct *prev, *next;
 	unsigned long *switch_count;
 	struct rq_flags rf;
@@ -3465,25 +3463,13 @@ static void __sched notrace __schedule(bool preempt)
 	rq = cpu_rq(cpu);
 	prev = rq->curr;
 
-	pr_info("A1");
-	mdelay(5000);
-
 	schedule_debug(prev);
-
-	pr_info("A2");
-	mdelay(5000);
 
 	if (sched_feat(HRTICK))
 		hrtick_clear(rq);
 
-	pr_info("A3");
-	mdelay(5000);
-
 	local_irq_disable();
 	rcu_note_context_switch(preempt);
-
-	pr_info("A4");
-	mdelay(5000);
 
 	/*
 	 * Make sure that signal_pending_state()->signal_pending() below
@@ -3496,15 +3482,9 @@ static void __sched notrace __schedule(bool preempt)
 	rq_lock(rq, &rf);
 	smp_mb__after_spinlock();
 
-	pr_info("A5");
-	mdelay(5000);
-
 	/* Promote REQ to ACT */
 	rq->clock_update_flags <<= 1;
 	update_rq_clock(rq);
-
-	pr_info("A6");
-	mdelay(5000);
 
 	switch_count = &prev->nivcsw;
 	if (!preempt && prev->state) {
@@ -3513,7 +3493,6 @@ static void __sched notrace __schedule(bool preempt)
 		} else {
 			deactivate_task(rq, prev, DEQUEUE_SLEEP | DEQUEUE_NOCLOCK);
 			prev->on_rq = 0;
-
 			if (prev->in_iowait) {
 				atomic_inc(&rq->nr_iowait);
 				delayacct_blkio_start();
@@ -3535,7 +3514,19 @@ static void __sched notrace __schedule(bool preempt)
 		switch_count = &prev->nvcsw;
 	}
 
-	pr_info("A7");
+	pr_info("A7 - will check to see the value of the current tag");
+	mdelay(5000);
+
+	pr_info("tag=%d",prev->tag);
+	mdelay(5000);
+
+	pr_info("level=%d",(prev->tag)&3);
+	mdelay(5000);
+
+	pr_info("waiting some more");
+	mdelay(5000);
+
+	pr_info("a8");
 	mdelay(5000);
 
 	next = NULL;
