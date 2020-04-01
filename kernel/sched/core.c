@@ -5457,44 +5457,54 @@ void init_idle(struct task_struct *idle, int cpu)
 	{
 		rq = &levels_rq->rqs[level];
 		raw_spin_lock(&rq->lock);
+	}
 
-		__sched_fork(0, idle);
-		idle->state = TASK_RUNNING;
-		idle->se.exec_start = sched_clock();
-		idle->flags |= PF_IDLE;
+	__sched_fork(0, idle);
+	idle->state = TASK_RUNNING;
+	idle->se.exec_start = sched_clock();
+	idle->flags |= PF_IDLE;
 
-		kasan_unpoison_task_stack(idle);
+	kasan_unpoison_task_stack(idle);
 
-	#ifdef CONFIG_SMP
-		/*
-		 * Its possible that init_idle() gets called multiple times on a task,
-		 * in that case do_set_cpus_allowed() will not do the right thing.
-		 *
-		 * And since this is boot we can forgo the serialization.
-		 */
-		set_cpus_allowed_common(idle, cpumask_of(cpu));
-	#endif
-		/*
-		 * We're having a chicken and egg problem, even though we are
-		 * holding rq->lock, the CPU isn't yet set to this CPU so the
-		 * lockdep check in task_group() will fail.
-		 *
-		 * Similar case to sched_fork(). / Alternatively we could
-		 * use task_rq_lock() here and obtain the other rq->lock.
-		 *
-		 * Silence PROVE_RCU
-		 */
-		rcu_read_lock();
-		__set_task_cpu(idle, cpu);
-		rcu_read_unlock();
+#ifdef CONFIG_SMP
+	/*
+	 * Its possible that init_idle() gets called multiple times on a task,
+	 * in that case do_set_cpus_allowed() will not do the right thing.
+	 *
+	 * And since this is boot we can forgo the serialization.
+	 */
+	set_cpus_allowed_common(idle, cpumask_of(cpu));
+#endif
+	/*
+	 * We're having a chicken and egg problem, even though we are
+	 * holding rq->lock, the CPU isn't yet set to this CPU so the
+	 * lockdep check in task_group() will fail.
+	 *
+	 * Similar case to sched_fork(). / Alternatively we could
+	 * use task_rq_lock() here and obtain the other rq->lock.
+	 *
+	 * Silence PROVE_RCU
+	 */
+	rcu_read_lock();
+	__set_task_cpu(idle, cpu);
+	rcu_read_unlock();
 
+	for (level = 0; level < NUM_TASK_LEVELS; ++level)
+	{
+		rq = &levels_rq->rqs[level];
 		rq->curr = rq->idle = idle;
-		idle->on_rq = TASK_ON_RQ_QUEUED;
-	#ifdef CONFIG_SMP
-		idle->on_cpu = 1;
-	#endif
+	}
+	idle->on_rq = TASK_ON_RQ_QUEUED;
+#ifdef CONFIG_SMP
+	idle->on_cpu = 1;
+#endif
+
+	for (level = 0; level < NUM_TASK_LEVELS; ++level)
+	{
+		rq = &levels_rq->rqs[level];
 		raw_spin_unlock(&rq->lock);
 	}
+
 	raw_spin_unlock_irqrestore(&idle->pi_lock, flags);
 
 	/* Set the preempt count _outside_ the spinlocks! */
