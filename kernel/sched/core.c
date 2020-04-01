@@ -11,8 +11,6 @@
 
 #include <linux/kcov.h>
 
-#include <linux/delay.h>
-
 #include <asm/switch_to.h>
 #include <asm/tlb.h>
 
@@ -2813,13 +2811,7 @@ context_switch(struct rq *rq, struct task_struct *prev,
 {
 	struct mm_struct *mm, *oldmm;
 
-	pr_info("A0\n");
-	mdelay(5000);
-
 	prepare_task_switch(rq, prev, next);
-
-	pr_info("A1\n");
-	mdelay(5000);
 
 	mm = next->mm;
 	oldmm = prev->active_mm;
@@ -2828,8 +2820,6 @@ context_switch(struct rq *rq, struct task_struct *prev,
 	 * combine the page table reload and the switch backend into
 	 * one hypercall.
 	 */
-	pr_info("A2\n");
-	mdelay(5000);
 	arch_start_context_switch(prev);
 
 	/*
@@ -2839,25 +2829,15 @@ context_switch(struct rq *rq, struct task_struct *prev,
 	 * membarrier after storing to rq->curr, before returning to
 	 * user-space.
 	 */
-
-	pr_info("A3\n");
-	mdelay(5000);
 	if (!mm) {
-
-		pr_info("A4\n");
-		mdelay(5000);
 		next->active_mm = oldmm;
 		mmgrab(oldmm);
 		enter_lazy_tlb(oldmm, next);
 	} else {
-			pr_info("A5\n");
-	mdelay(5000);
 		switch_mm_irqs_off(oldmm, mm, next);
 	}
 
 	if (!prev->mm) {
-			pr_info("A6\n");
-	mdelay(5000);
 		prev->active_mm = NULL;
 		rq->prev_mm = oldmm;
 	}
@@ -2866,21 +2846,9 @@ context_switch(struct rq *rq, struct task_struct *prev,
 
 	prepare_lock_switch(rq, next, rf);
 
-	pr_info("A8\n");
-	pr_info("prev - %px\n",prev);
-	pr_info("next - %px\n",next);
-	mdelay(5000);
-
 	/* Here we just switch the register state and the stack. */
 	switch_to(prev, next, prev);
-
-	pr_info("A9\n");
-	mdelay(5000);
-
 	barrier();
-	
-	pr_info("A10\n");
-	mdelay(5000);
 
 	return finish_task_switch(prev);
 }
@@ -3101,88 +3069,33 @@ void scheduler_tick(void)
 		// set the amount of ticks allotted for this runqueue
 		levels_management.remaining_ticks = levels_management.alloc[levels_management.current_level] * HZ / 1000;
 
-		pr_info("old rq addr=%px", rq);
 		// update the rq pointer to the current (new) rq
 		rq = cpu_rq(cpu);
-		pr_info("new rq addr=%px", rq);
 	}
-
-	pr_info("current_level=%d\n",levels_management.current_level);
-	mdelay(5000);
 
 	rq_lock(rq, &rf);
 
-	pr_info("2\n");
-	mdelay(5000);
-
 	sched_clock_tick();
 
-	pr_info("3\n");
-	mdelay(5000);
-
 	curr = rq->curr;
-
-	pr_info("4\n");
-	if (!curr)
+	if (unlikely(!curr))
 	{
 		curr = rq->idle;
-		pr_info("curr was null, updating to idle thread");
-		if (!(rq->idle))
-		{
-			pr_info("DANGER - IDLE NULL");
-		}
 	}
-	else
-	{
-		pr_info("curr is valid.\n");
-	}
-	mdelay(5000);
 
 	update_rq_clock(rq);
-
-	pr_info("5\n");
-	pr_info("rq addr=%px", rq);
-	mdelay(10000);
-
 	curr->sched_class->task_tick(rq, curr, 0);
-
-	pr_info("6\n");
-	mdelay(5000);
 	cpu_load_update_active(rq);
-
-	pr_info("7\n");
-	mdelay(5000);
 	calc_global_load_tick(rq);
-
-	pr_info("8\n");
-	mdelay(5000);
 	psi_task_tick(rq);
 
-	pr_info("9\n");
-	mdelay(5000);
-
 	rq_unlock(rq, &rf);
-
-	pr_info("10\n");
-	mdelay(5000);
-
 	perf_event_task_tick();
-
-
-	pr_info("11\n");
-	mdelay(5000);
 
 #ifdef CONFIG_SMP
 	rq->idle_balance = idle_cpu(cpu);
 
-
-	pr_info("12\n");
-	mdelay(5000);
 	trigger_load_balance(rq);
-
-
-	pr_info("13\n");
-	mdelay(5000);
 #endif
 }
 
