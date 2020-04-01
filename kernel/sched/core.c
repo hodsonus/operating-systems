@@ -2833,9 +2833,8 @@ context_switch(struct rq *rq, struct task_struct *prev,
 		next->active_mm = oldmm;
 		mmgrab(oldmm);
 		enter_lazy_tlb(oldmm, next);
-	} else {
+	} else
 		switch_mm_irqs_off(oldmm, mm, next);
-	}
 
 	if (!prev->mm) {
 		prev->active_mm = NULL;
@@ -3078,10 +3077,6 @@ void scheduler_tick(void)
 	rq_lock(rq, &rf);
 
 	curr = rq->curr;
-	if (unlikely(!curr))
-	{
-		curr = rq->idle;
-	}
 
 	update_rq_clock(rq);
 	curr->sched_class->task_tick(rq, curr, 0);
@@ -3094,7 +3089,6 @@ void scheduler_tick(void)
 
 #ifdef CONFIG_SMP
 	rq->idle_balance = idle_cpu(cpu);
-
 	trigger_load_balance(rq);
 #endif
 }
