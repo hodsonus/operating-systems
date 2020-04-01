@@ -2870,8 +2870,8 @@ context_switch(struct rq *rq, struct task_struct *prev,
 	prepare_lock_switch(rq, next, rf);
 
 	pr_info("A8\n");
-	pr_info("prev - %p\n",prev);
-	pr_info("next - %p\n",next);
+	pr_info("prev - %px\n",prev);
+	pr_info("next - %px\n",next);
 	mdelay(5000);
 
 	/* Here we just switch the register state and the stack. */
