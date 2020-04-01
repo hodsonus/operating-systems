@@ -3529,7 +3529,6 @@ static void __sched notrace __schedule(bool preempt)
 	pr_info("a8");
 	mdelay(5000);
 
-	next = NULL;
 	num_tasks_observed = 0;
 	for (; level_of(next) != levels_management.current_level && ++num_tasks_observed < rq->nr_running; prev = next)
 	{
