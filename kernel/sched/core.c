@@ -3123,22 +3123,22 @@ void scheduler_tick(void)
 	curr = rq->curr;
 
 	pr_info("4\n");
+	if (!curr)
+	{
+		pr_info("curr is null!!Q!!!!!\n");
+	}
+	else
+	{
+		pr_info("curr is valid.\n");
+	}
 	mdelay(5000);
 
 	update_rq_clock(rq);
 
 	pr_info("5\n");
 	pr_info("rq addr=%px", rq);
-
-	if (!curr)
-	{
-		pr_info("curr is null!!Q!!!!!");
-	}
-	else
-	{
-		pr_info("curr is valid.");
-	}
 	mdelay(10000);
+
 	curr->sched_class->task_tick(rq, curr, 0);
 
 	pr_info("6\n");
