@@ -3521,7 +3521,7 @@ levelspickagain:
 
 	next = pick_next_task(rq, add_to_rq, &rf);
 
-	if ( ((next->tag)&3) != levels_management.current_level )
+	if ( level_of(tag) != levels_management.current_level )
 	{
 		if (++num_tasks_observed < rq->nr_running)
 		{
@@ -3537,7 +3537,7 @@ levelspickagain:
 			// else, we have seen every process in the runqueue and none are of our level
 			// put this task back into the rq
 			put_prev_task(rq, next);
-			
+
 			// and set next to be the idle task
 			next = rq->idle;
 		}
