@@ -9,11 +9,11 @@ SYSCALL_DEFINE2(set_alloc, int, level, int, new_allocation)
 	int i, total_alloc;
 
 	// if the user is not the superuser, fail
-	if (current_uid().val != 0) return -1;
+	if (current_uid().val != 0) return -EACCES;
 	// if the level is not valid, fail
-	if (level < 0 || level >= NUM_TASK_LEVELS) return -1;
+	if (level < 0 || level >= NUM_TASK_LEVELS) return -EBLEVEL;
 	// if the new allocation is not a valid timeslice, fail
-	if (new_allocation < 0) return -1;
+	if (new_allocation < 0) return -EBALLOC;
 
 	// calculate the new total allcoated time with this change
 	total_alloc = 0;
@@ -26,7 +26,7 @@ SYSCALL_DEFINE2(set_alloc, int, level, int, new_allocation)
 	} 
 
 	// if the proposed update puts us underneath the total minimum allocation, fail
-	if (total_alloc < MINIMUM_TOTAL_ALLOC) return -1;
+	if (total_alloc < MINIMUM_TOTAL_ALLOC) return -EBALLOCUNDER;
 
 	// perform the update if we passed all of the checks
 	levels_management.alloc[level] = new_allocation;
@@ -38,7 +38,7 @@ SYSCALL_DEFINE2(set_alloc, int, level, int, new_allocation)
 SYSCALL_DEFINE1(get_alloc, int, level)
 {
 	// if the level is not valid, fail
-	if (level < 0 || level >= NUM_TASK_LEVELS) return -1; 
+	if (level < 0 || level >= NUM_TASK_LEVELS) return -EBLEVEL; 
 
 	// return the allocation for the level on this CPU's rq
 	return levels_management.alloc[level];
