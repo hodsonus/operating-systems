@@ -3520,7 +3520,7 @@ levelspickagain:
 
 	next = pick_next_task(rq, prev, &rf);
 
-	if ( level_of(tag) != levels_management.current_level )
+	if ( level_of(next) != levels_management.current_level )
 	{
 		if (++num_tasks_observed < rq->nr_running)
 		{
