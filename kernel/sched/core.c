@@ -3538,17 +3538,32 @@ levelspickagain:
 	pr_info("a10");
 	mdelay(5000);
 
-	next_level = ((next->tag)&3);
+	next_level = level_of(tag);
 
 	pr_info("oops");
 	mdelay(5000);
 
-	if ( next_level != levels_management.current_level ) {
+	if ( next_level != levels_management.current_level )
+	{
 		pr_info("a11\nnext_level=%d\ncurrent_level=%d",next_level,levels_management.current_level);
 		mdelay(5000);
-		prev = next;
-		++num_tasks_observed;
-		goto levelspickagain;
+		if (++num_tasks_observed < rq->nr_running)
+		{
+			// if we have not seen every process in the rq
+			// set the prev equal to the next (putting it back into the rq)
+			prev = next;
+
+			// and pick again
+			goto levelspickagain;
+		}
+		else
+		{
+			// else, we have seen every process in the runqueue and none are of our level
+			// put this task back into the rq
+			put_prev_task(rq, next);
+			// and set next to be the idle task
+			next = rq->idle;
+		}
 	}
 	pr_info("a12");
 	mdelay(5000);
