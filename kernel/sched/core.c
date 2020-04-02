@@ -3069,6 +3069,8 @@ void scheduler_tick(void)
 		levels_management.current_level = (levels_management.current_level + 1) % NUM_TASK_LEVELS;
 		// set the amount of ticks allotted for this runqueue
 		levels_management.remaining_ticks = levels_management.alloc[levels_management.current_level] * HZ / 1000;
+
+		set_tsk_need_resched(rq->curr);
 	}
 
 	sched_clock_tick();
