@@ -3521,7 +3521,7 @@ levelspickagain:
 
 	next = pick_next_task(rq, add_to_rq, &rf);
 
-	if ( level_of(tag) != levels_management.current_level )
+	if ( level_of(next) != levels_management.current_level )
 	{
 		if (++num_tasks_observed < rq->nr_running)
 		{
@@ -3542,6 +3542,8 @@ levelspickagain:
 			next = rq->idle;
 		}
 	}
+
+	pr_info("chose process %px, %d running", next, rq->nr_running);
 
 	clear_tsk_need_resched(prev);
 	clear_preempt_need_resched();
