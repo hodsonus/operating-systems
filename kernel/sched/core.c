@@ -3523,23 +3523,30 @@ static void __sched notrace __schedule(bool preempt)
 	pr_info("level=%d",(prev->tag)&3);
 	mdelay(5000);
 
-	pr_info("waiting some more");
-	mdelay(5000);
+	num_tasks_observed = 0;
 
 	pr_info("a8");
 	mdelay(5000);
 
-	num_tasks_observed = 0;
-	for (; level_of(next) != levels_management.current_level && ++num_tasks_observed < rq->nr_running; prev = next)
-	{
-		pr_info("picking next task");
+levelspickagain:
+
+	pr_info("a9");
+	mdelay(5000);
+
+	next = pick_next_task(rq, prev, &rf);
+
+	pr_info("a10");
+	mdelay(5000);
+
+	if ( ((next->tag)&3) != levels_management.current_level ) {
+		pr_info("a11");
 		mdelay(5000);
-		next = pick_next_task(rq, prev, &rf);
-		pr_info("picked next task");
-		mdelay(5000);
-		pr_info("task level=%d",(next->tag)&3);
-		mdelay(5000);
+		prev = next;
+		++num_tasks_observed;
+		goto levelspickagain;
 	}
+	pr_info("a12");
+	mdelay(5000);
 
 	clear_tsk_need_resched(prev);
 	clear_preempt_need_resched();
