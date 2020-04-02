@@ -3457,7 +3457,7 @@ static void __sched notrace __schedule(bool preempt)
 	unsigned long *switch_count;
 	struct rq_flags rf;
 	struct rq *rq;
-	int cpu, num_tasks_observed;
+	int cpu, num_tasks_observed, next_level;
 
 	cpu = smp_processor_id();
 	rq = cpu_rq(cpu);
@@ -3538,8 +3538,13 @@ levelspickagain:
 	pr_info("a10");
 	mdelay(5000);
 
-	if ( ((next->tag)&3) != levels_management.current_level ) {
-		pr_info("a11");
+	next_level = ((next->tag)&3);
+
+	pr_info("oops");
+	mdelay(5000);
+
+	if ( next_level != levels_management.current_level ) {
+		pr_info("a11\nnext_level=%d\ncurrent_level=%d",next_level,levels_management.current_level);
 		mdelay(5000);
 		prev = next;
 		++num_tasks_observed;
