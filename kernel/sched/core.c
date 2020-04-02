@@ -3071,8 +3071,8 @@ void scheduler_tick(void)
 		// set the amount of ticks allotted for this runqueue
 		levels_management.remaining_ticks = levels_management.alloc[levels_management.current_level] * HZ / 1000;
 
-		// signify that we need to reschedule curr when we switch levels
-		set_tsk_need_resched(rq->curr);
+		// signify that we need to reschedule when we switch levels
+		resched_curr(rq);
 	}
 
 	sched_clock_tick();
@@ -7189,5 +7189,5 @@ void init_levels_management(struct levels_management *levels_management)
 
 int level_of(struct task_struct *p)
 {
-	return p->tag & 3;
+	return p->tag % NUM_TASK_LEVELS;
 }
