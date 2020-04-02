@@ -3067,9 +3067,11 @@ void scheduler_tick(void)
 	{
 		// update the current level
 		levels_management.current_level = (levels_management.current_level + 1) % NUM_TASK_LEVELS;
+		
 		// set the amount of ticks allotted for this runqueue
 		levels_management.remaining_ticks = levels_management.alloc[levels_management.current_level] * HZ / 1000;
 
+		// signify that we need to reschedule curr when we switch levels
 		set_tsk_need_resched(rq->curr);
 	}
 
@@ -3544,8 +3546,6 @@ levelspickagain:
 			next = rq->idle;
 		}
 	}
-
-	pr_info("chose process %px, %d running", next, rq->nr_running);
 
 	clear_tsk_need_resched(prev);
 	clear_preempt_need_resched();
