@@ -3457,7 +3457,7 @@ static void __sched notrace __schedule(bool preempt)
 	unsigned long *switch_count;
 	struct rq_flags rf;
 	struct rq *rq;
-	int cpu, num_tasks_observed, next_level;
+	int cpu, num_tasks_observed;
 
 	cpu = smp_processor_id();
 	rq = cpu_rq(cpu);
@@ -3514,39 +3514,14 @@ static void __sched notrace __schedule(bool preempt)
 		switch_count = &prev->nvcsw;
 	}
 
-	pr_info("A7 - will check to see the value of the current tag");
-	mdelay(5000);
-
-	pr_info("tag=%d",prev->tag);
-	mdelay(5000);
-
-	pr_info("level=%d",(prev->tag)&3);
-	mdelay(5000);
-
 	num_tasks_observed = 0;
-
-	pr_info("a8");
-	mdelay(5000);
 
 levelspickagain:
 
-	pr_info("a9");
-	mdelay(5000);
-
 	next = pick_next_task(rq, prev, &rf);
 
-	pr_info("a10");
-	mdelay(5000);
-
-	next_level = level_of(tag);
-
-	pr_info("oops");
-	mdelay(5000);
-
-	if ( next_level != levels_management.current_level )
+	if ( level_of(tag) != levels_management.current_level )
 	{
-		pr_info("a11\nnext_level=%d\ncurrent_level=%d",next_level,levels_management.current_level);
-		mdelay(5000);
 		if (++num_tasks_observed < rq->nr_running)
 		{
 			// if we have not seen every process in the rq
@@ -3565,8 +3540,6 @@ levelspickagain:
 			next = rq->idle;
 		}
 	}
-	pr_info("a12");
-	mdelay(5000);
 
 	clear_tsk_need_resched(prev);
 	clear_preempt_need_resched();
