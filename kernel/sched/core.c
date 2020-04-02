@@ -3453,7 +3453,7 @@ again:
  */
 static void __sched notrace __schedule(bool preempt)
 {
-	struct task_struct *prev, *next;
+	struct task_struct *prev, *next, *add_to_rq;
 	unsigned long *switch_count;
 	struct rq_flags rf;
 	struct rq *rq;
@@ -3515,10 +3515,11 @@ static void __sched notrace __schedule(bool preempt)
 	}
 
 	num_tasks_observed = 0;
+	add_to_rq = prev;
 
 levelspickagain:
 
-	next = pick_next_task(rq, prev, &rf);
+	next = pick_next_task(rq, add_to_rq, &rf);
 
 	if ( ((next->tag)&3) != levels_management.current_level )
 	{
@@ -3526,7 +3527,7 @@ levelspickagain:
 		{
 			// if we have not seen every process in the rq
 			// set the prev equal to the next (putting it back into the rq)
-			prev = next;
+			add_to_rq = next;
 
 			// and pick again
 			goto levelspickagain;
@@ -3536,6 +3537,7 @@ levelspickagain:
 			// else, we have seen every process in the runqueue and none are of our level
 			// put this task back into the rq
 			put_prev_task(rq, next);
+			
 			// and set next to be the idle task
 			next = rq->idle;
 		}
