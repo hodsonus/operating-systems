@@ -11,6 +11,8 @@
 
 #include <linux/kcov.h>
 
+#include <linux/delay.h>
+
 #include <asm/switch_to.h>
 #include <asm/tlb.h>
 
@@ -3524,14 +3526,17 @@ static void __sched notrace __schedule(bool preempt)
 	}
 
 	pr_info("a-3");
+	mdelay(5000);
 	num_tasks_observed = 0;
 	struct task_list_wrapper tlw;
 	tlw.p = prev;
 	struct task_list_wrapper *curr = &tlw;
 	pr_info("a-2");
+	mdelay(5000);
 
 levelspickagain:
 	pr_info("a-1");
+	mdelay(5000);
 
 	next = pick_next_task(rq, rq->idle, &rf);
 
@@ -3540,12 +3545,14 @@ levelspickagain:
 		if (++num_tasks_observed < rq->nr_running)
 		{
 			pr_info("a0");
+			mdelay(5000);
 
 			// if we have not seen every process in the rq
 			// set the prev equal to the next (putting it back into the rq)
 			curr->next = &( (struct task_list_wrapper){next,0} );
 
 			pr_info("a1");
+			mdelay(5000);
 			curr = curr->next;
 
 			// and pick again
@@ -3563,14 +3570,20 @@ levelspickagain:
 	}
 
 	pr_info("a2");
+	mdelay(5000);
 	curr = &tlw;
 	while (curr)
 	{
 		pr_info("a3");
+		mdelay(5000);
 		put_prev_task(rq, curr->p);
 		pr_info("a4");
+		mdelay(5000);
 		curr = curr->next;
 	}
+
+	pr_info("a5");
+	mdelay(5000);
 
 	clear_tsk_need_resched(prev);
 	clear_preempt_need_resched();
