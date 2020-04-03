@@ -3420,7 +3420,7 @@ again:
 
 struct task_list_wrapper {
 	struct task_struct *p;
-	struct task_list_wrapper *next;
+	struct list_head mylist;
 };
 
 /*
@@ -3468,7 +3468,7 @@ static void __sched notrace __schedule(bool preempt)
 	unsigned long *switch_count;
 	struct rq_flags rf;
 	struct rq *rq;
-	int cpu, num_tasks_observed;
+	int cpu, num_tasks_observed, i;
 
 	cpu = smp_processor_id();
 	rq = cpu_rq(cpu);
@@ -3525,35 +3525,21 @@ static void __sched notrace __schedule(bool preempt)
 		switch_count = &prev->nvcsw;
 	}
 
-	pr_info("a-3");
-	mdelay(5000);
 	num_tasks_observed = 0;
-	struct task_list_wrapper tlw;
-	tlw.p = prev;
-	struct task_list_wrapper *curr = &tlw;
-	pr_info("a-2");
-	mdelay(5000);
+	struct task_struct *p[rq->nr_running];
+	p[num_tasks_observed++] = prev;
 
 levelspickagain:
-	pr_info("a-1");
-	mdelay(5000);
 
 	next = pick_next_task(rq, rq->idle, &rf);
 
 	if ( level_of(next) != levels_management.current_level )
 	{
-		if (++num_tasks_observed < rq->nr_running)
+		if (num_tasks_observed < rq->nr_running)
 		{
-			pr_info("a0");
-			mdelay(5000);
-
 			// if we have not seen every process in the rq
 			// set the prev equal to the next (putting it back into the rq)
-			curr->next = &( (struct task_list_wrapper){next,0} );
-
-			pr_info("a1");
-			mdelay(5000);
-			curr = curr->next;
+			p[num_tasks_observed++] = next;
 
 			// and pick again
 			goto levelspickagain;
@@ -3569,21 +3555,10 @@ levelspickagain:
 		}
 	}
 
-	pr_info("a2");
-	mdelay(5000);
-	curr = &tlw;
-	while (curr)
+	for (i = 0; i < num_tasks_observed; ++i)
 	{
-		pr_info("a3");
-		mdelay(5000);
-		put_prev_task(rq, curr->p);
-		pr_info("a4");
-		mdelay(5000);
-		curr = curr->next;
+		put_prev_task(rq, p[i]);
 	}
-
-	pr_info("a5");
-	mdelay(5000);
 
 	clear_tsk_need_resched(prev);
 	clear_preempt_need_resched();
