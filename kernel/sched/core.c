@@ -3416,6 +3416,11 @@ again:
 	BUG();
 }
 
+struct task_list_wrapper {
+	task_struct *p;
+	struct task_list_wrapper *next;
+};
+
 /*
  * __schedule() is the main scheduler function.
  *
@@ -3519,11 +3524,13 @@ static void __sched notrace __schedule(bool preempt)
 	}
 
 	num_tasks_observed = 0;
-	add_to_rq = prev;
+	struct task_list_wrapper tlw;
+	tlw.p = prev;
+	struct task_list_wrapper *curr = &tlw;
 
 levelspickagain:
 
-	next = pick_next_task(rq, add_to_rq, &rf);
+	next = pick_next_task(rq, rq->idle, &rf);
 
 	if ( level_of(next) != levels_management.current_level )
 	{
@@ -3531,7 +3538,8 @@ levelspickagain:
 		{
 			// if we have not seen every process in the rq
 			// set the prev equal to the next (putting it back into the rq)
-			add_to_rq = next;
+			curr->next = &( (struct task_list_wrapper){next,0} );
+			curr = curr->next;
 
 			// and pick again
 			goto levelspickagain;
@@ -3545,6 +3553,13 @@ levelspickagain:
 			// and set next to be the idle task
 			next = rq->idle;
 		}
+	}
+
+	curr = &tlw;
+	while (curr)
+	{
+		put_prev_task(rq, curr->p);
+		curr = curr->next;
 	}
 
 	clear_tsk_need_resched(prev);
