@@ -3523,12 +3523,15 @@ static void __sched notrace __schedule(bool preempt)
 		switch_count = &prev->nvcsw;
 	}
 
+	pr_info("a-3");
 	num_tasks_observed = 0;
 	struct task_list_wrapper tlw;
 	tlw.p = prev;
 	struct task_list_wrapper *curr = &tlw;
+	pr_info("a-2");
 
 levelspickagain:
+	pr_info("a-1");
 
 	next = pick_next_task(rq, rq->idle, &rf);
 
@@ -3536,9 +3539,13 @@ levelspickagain:
 	{
 		if (++num_tasks_observed < rq->nr_running)
 		{
+			pr_info("a0");
+
 			// if we have not seen every process in the rq
 			// set the prev equal to the next (putting it back into the rq)
 			curr->next = &( (struct task_list_wrapper){next,0} );
+
+			pr_info("a1");
 			curr = curr->next;
 
 			// and pick again
@@ -3555,10 +3562,13 @@ levelspickagain:
 		}
 	}
 
+	pr_info("a2");
 	curr = &tlw;
 	while (curr)
 	{
+		pr_info("a3");
 		put_prev_task(rq, curr->p);
+		pr_info("a4");
 		curr = curr->next;
 	}
 
