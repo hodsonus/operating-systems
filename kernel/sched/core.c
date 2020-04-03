@@ -3417,7 +3417,7 @@ again:
 }
 
 struct task_list_wrapper {
-	task_struct *p;
+	struct task_struct *p;
 	struct task_list_wrapper *next;
 };
 
