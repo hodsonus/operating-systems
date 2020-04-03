@@ -3464,11 +3464,11 @@ struct task_list_wrapper {
  */
 static void __sched notrace __schedule(bool preempt)
 {
-	struct task_struct *prev, *next, *add_to_rq;
+	struct task_struct *prev, *next;
 	unsigned long *switch_count;
 	struct rq_flags rf;
 	struct rq *rq;
-	int cpu, num_tasks_observed, i;
+	int cpu, num_tasks_observed;
 
 	cpu = smp_processor_id();
 	rq = cpu_rq(cpu);
@@ -3563,13 +3563,11 @@ levelspickagain:
 
 	struct task_list_wrapper *datastructureptr; 
 	struct list_head *position, *q; 
-	list_for_each ( position , q, & mylinkedlist ) 
+	list_for_each_safe ( position , q, & mylinkedlist ) 
 	{ 
 		datastructureptr = list_entry ( position, struct task_list_wrapper , mylist ); 
-		printk ("task  =  %px\n" , datastructureptr->p );
-		mdelay(5000);
 		put_prev_task(rq, datastructureptr->p);
-		list_del(pos);
+		list_del(position);
 		kfree(datastructureptr);
 	}
 
