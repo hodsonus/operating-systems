@@ -3526,20 +3526,26 @@ static void __sched notrace __schedule(bool preempt)
 	}
 
 	num_tasks_observed = 0;
-	struct task_struct *p[rq->nr_running];
-	p[num_tasks_observed++] = prev;
+	LIST_HEAD(mylinkedlist);
+
+	struct task_list_wrapper *tlw = kmalloc(sizeof(struct task_list_wrapper), GFP_ATOMIC);
+	tlw->p = prev;
+
+	list_add ( &tlw->mylist , &mylinkedlist );
 
 levelspickagain:
 
 	next = pick_next_task(rq, rq->idle, &rf);
 
-	if ( level_of(next) != levels_management.current_level )
+	if ( level_of(next) != levels_management.current_level)
 	{
 		if (num_tasks_observed < rq->nr_running)
 		{
 			// if we have not seen every process in the rq
-			// set the prev equal to the next (putting it back into the rq)
-			p[num_tasks_observed++] = next;
+			// add it to the list
+			tlw = kmalloc(sizeof(struct task_list_wrapper), GFP_ATOMIC);
+			tlw->p = next;
+			list_add ( &tlw->mylist , &mylinkedlist );
 
 			// and pick again
 			goto levelspickagain;
@@ -3555,9 +3561,16 @@ levelspickagain:
 		}
 	}
 
-	for (i = 0; i < num_tasks_observed; ++i)
-	{
-		put_prev_task(rq, p[i]);
+	struct task_list_wrapper *datastructureptr; 
+	struct list_head *position, *q; 
+	list_for_each ( position , q, & mylinkedlist ) 
+	{ 
+		datastructureptr = list_entry ( position, struct task_list_wrapper , mylist ); 
+		printk ("task  =  %px\n" , datastructureptr->p );
+		mdelay(5000);
+		put_prev_task(rq, datastructureptr->p);
+		list_del(pos);
+		kfree(datastructureptr);
 	}
 
 	clear_tsk_need_resched(prev);
