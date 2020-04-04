@@ -3531,8 +3531,9 @@ static void __sched notrace __schedule(bool preempt)
 	{
 
 		LIST_HEAD(mylinkedlist);
+		num_tasks_pulled = 0;
 
-		struct task_list_wrapper *tlw = kvmalloc(sizeof(struct task_list_wrapper), GFP_KERNEL);
+		struct task_list_wrapper *tlw = kvmalloc(sizeof(struct task_list_wrapper), GFP_ATOMIC);
 		if (!tlw)
 		{
 			pr_info("KVMALLOC FAILED, %d tasks pulled, %d tasks", num_tasks_pulled, num_tasks_running);
@@ -3541,8 +3542,6 @@ static void __sched notrace __schedule(bool preempt)
 		tlw->p = prev;
 
 		list_add ( &tlw->mylist , &mylinkedlist );
-
-		num_tasks_pulled = 0;
 
 	levelspickagain:
 
@@ -3554,7 +3553,7 @@ static void __sched notrace __schedule(bool preempt)
 			{
 				// if we have not seen every process in the rq
 				// add it to the list
-				tlw = kvmalloc(sizeof(struct task_list_wrapper), GFP_KERNEL);
+				tlw = kvmalloc(sizeof(struct task_list_wrapper), GFP_ATOMIC);
 				if (!tlw)
 				{
 					pr_info("KVMALLOC FAILED, %d tasks pulled, %d tasks", num_tasks_pulled, num_tasks_running);
@@ -3580,7 +3579,7 @@ static void __sched notrace __schedule(bool preempt)
 		struct list_head *pos, *q; 
 		list_for_each_safe(pos, q, &mylinkedlist) 
 		{ 
-			tlw = list_entry (pos, struct task_list_wrapper, mylist);
+			tlw = list_entry(pos, struct task_list_wrapper, mylist);
 			
 			put_prev_task(rq, tlw->p);
 			
