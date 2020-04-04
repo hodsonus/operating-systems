@@ -3525,63 +3525,72 @@ static void __sched notrace __schedule(bool preempt)
 		switch_count = &prev->nvcsw;
 	}
 
-	num_tasks_pulled = 0;
 	num_tasks_running = rq->nr_running;
 
-	LIST_HEAD(mylinkedlist);
-
-	struct task_list_wrapper *tlw = kvmalloc(sizeof(struct task_list_wrapper), GFP_KERNEL);
-	if (!tlw)
+	if (num_tasks_running)
 	{
-		pr_info("KVMALLOC FAILED, %d tasks pulled, %d tasks", num_tasks_pulled, num_tasks_running);
-		mdelay(10000);
-	}
-	tlw->p = prev;
 
-	list_add ( &tlw->mylist , &mylinkedlist );
+		LIST_HEAD(mylinkedlist);
 
-levelspickagain:
-
-	next = pick_next_task(rq, rq->idle, &rf);
-
-	if ( level_of(next) != levels_management.current_level)
-	{
-		if (++num_tasks_pulled < num_tasks_running)
+		struct task_list_wrapper *tlw = kvmalloc(sizeof(struct task_list_wrapper), GFP_KERNEL);
+		if (!tlw)
 		{
-			// if we have not seen every process in the rq
-			// add it to the list
-			tlw = kvmalloc(sizeof(struct task_list_wrapper), GFP_KERNEL);
-			if (!tlw)
+			pr_info("KVMALLOC FAILED, %d tasks pulled, %d tasks", num_tasks_pulled, num_tasks_running);
+			mdelay(10000);
+		}
+		tlw->p = prev;
+
+		list_add ( &tlw->mylist , &mylinkedlist );
+
+		num_tasks_pulled = 0;
+
+	levelspickagain:
+
+		next = pick_next_task(rq, rq->idle, &rf);
+
+		if ( level_of(next) != levels_management.current_level )
+		{
+			if (++num_tasks_pulled < num_tasks_running)
 			{
-				pr_info("KVMALLOC FAILED, %d tasks pulled, %d tasks", num_tasks_pulled, num_tasks_running);
-				mdelay(10000);
+				// if we have not seen every process in the rq
+				// add it to the list
+				tlw = kvmalloc(sizeof(struct task_list_wrapper), GFP_KERNEL);
+				if (!tlw)
+				{
+					pr_info("KVMALLOC FAILED, %d tasks pulled, %d tasks", num_tasks_pulled, num_tasks_running);
+					mdelay(10000);
+				}
+				tlw->p = next;
+				list_add ( &tlw->mylist , &mylinkedlist );
+
+				// and pick again
+				goto levelspickagain;
 			}
-			tlw->p = next;
-			list_add ( &tlw->mylist , &mylinkedlist );
+			else
+			{
+				// else, we have seen every process in the runqueue and none are of our level
+				// put this task back into the rq
+				put_prev_task(rq, next);
 
-			// and pick again
-			goto levelspickagain;
+				// and set next to be the idle task
+				next = rq->idle;
+			}
 		}
-		else
-		{
-			// else, we have seen every process in the runqueue and none are of our level
-			// put this task back into the rq
-			put_prev_task(rq, next);
 
-			// and set next to be the idle task
-			next = rq->idle;
+		struct list_head *pos, *q; 
+		list_for_each_safe(pos, q, &mylinkedlist) 
+		{ 
+			tlw = list_entry (pos, struct task_list_wrapper, mylist);
+			
+			put_prev_task(rq, tlw->p);
+			
+			list_del(pos);
+			kvfree(tlw);
 		}
 	}
-
-	struct list_head *pos, *q; 
-	list_for_each_safe(pos, q, &mylinkedlist) 
-	{ 
-		tlw = list_entry (pos, struct task_list_wrapper, mylist);
-		
-		put_prev_task(rq, tlw->p);
-		
-		list_del(pos);
-		kvfree(tlw);
+	else
+	{
+		next = pick_next_task(rq, prev, &rf);
 	}
 
 	clear_tsk_need_resched(prev);
