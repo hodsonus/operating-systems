@@ -3468,7 +3468,7 @@ static void __sched notrace __schedule(bool preempt)
 	unsigned long *switch_count;
 	struct rq_flags rf;
 	struct rq *rq;
-	int cpu, num_tasks_observed;
+	int cpu, num_tasks_pulled, num_tasks_running;
 
 	cpu = smp_processor_id();
 	rq = cpu_rq(cpu);
@@ -3525,10 +3525,17 @@ static void __sched notrace __schedule(bool preempt)
 		switch_count = &prev->nvcsw;
 	}
 
-	num_tasks_observed = 0;
+	num_tasks_pulled = 0;
+	num_tasks_running = rq->nr_running;
+
 	LIST_HEAD(mylinkedlist);
 
-	struct task_list_wrapper *tlw = kmalloc(sizeof(struct task_list_wrapper), GFP_ATOMIC);
+	struct task_list_wrapper *tlw = kvmalloc(sizeof(struct task_list_wrapper), GFP_KERNEL);
+	if (!tlw)
+	{
+		pr_info("KVMALLOC FAILED, %d tasks pulled, %d tasks", num_tasks_pulled);
+		mdelay(10000);
+	}
 	tlw->p = prev;
 
 	list_add ( &tlw->mylist , &mylinkedlist );
@@ -3539,11 +3546,16 @@ levelspickagain:
 
 	if ( level_of(next) != levels_management.current_level)
 	{
-		if (num_tasks_observed < rq->nr_running)
+		if (++num_tasks_pulled < num_tasks_running)
 		{
 			// if we have not seen every process in the rq
 			// add it to the list
-			tlw = kmalloc(sizeof(struct task_list_wrapper), GFP_ATOMIC);
+			tlw = kvmalloc(sizeof(struct task_list_wrapper), GFP_KERNEL);
+			if (!tlw)
+			{
+				pr_info("KVMALLOC FAILED, %d tasks pulled, %d tasks", num_tasks_pulled);
+				mdelay(10000);
+			}
 			tlw->p = next;
 			list_add ( &tlw->mylist , &mylinkedlist );
 
@@ -3561,14 +3573,15 @@ levelspickagain:
 		}
 	}
 
-	struct task_list_wrapper *datastructureptr; 
-	struct list_head *position, *q; 
-	list_for_each_safe ( position , q, & mylinkedlist ) 
+	struct list_head *pos, *q; 
+	list_for_each_safe(pos, q, &mylinkedlist) 
 	{ 
-		datastructureptr = list_entry ( position, struct task_list_wrapper , mylist ); 
-		put_prev_task(rq, datastructureptr->p);
-		list_del(position);
-		kfree(datastructureptr);
+		tlw = list_entry (pos, struct task_list_wrapper, mylist);
+		
+		put_prev_task(rq, tlw->p);
+		
+		list_del(pos);
+		kvfree(tlw);
 	}
 
 	clear_tsk_need_resched(prev);
