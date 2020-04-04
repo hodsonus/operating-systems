@@ -3464,7 +3464,8 @@ struct task_list_wrapper {
  */
 static void __sched notrace __schedule(bool preempt)
 {
-	struct task_struct *prev, *next;
+	struct task_struct *prev, *next, *put_back;
+	struct task_list_wrapper *tlw;
 	unsigned long *switch_count;
 	struct rq_flags rf;
 	struct rq *rq;
@@ -3529,30 +3530,24 @@ static void __sched notrace __schedule(bool preempt)
 
 	if (num_tasks_running)
 	{
+		LIST_HEAD(wakeup);
 
-		LIST_HEAD(mylinkedlist);
 		num_tasks_pulled = 0;
-
-		struct task_list_wrapper *tlw = kvmalloc(sizeof(struct task_list_wrapper), GFP_ATOMIC);
-		if (!tlw)
-		{
-			pr_info("KVMALLOC FAILED, %d tasks pulled, %d tasks", num_tasks_pulled, num_tasks_running);
-			mdelay(10000);
-		}
-		tlw->p = prev;
-
-		list_add ( &tlw->mylist , &mylinkedlist );
+		put_back = prev;
 
 	levelspickagain:
 
-		next = pick_next_task(rq, rq->idle, &rf);
+		next = pick_next_task(rq, put_back, &rf);
 
 		if ( level_of(next) != levels_management.current_level )
 		{
 			if (++num_tasks_pulled < num_tasks_running)
 			{
-				// if we have not seen every process in the rq
-				// add it to the list
+				// If we have not seen every process in the rq
+				// Put next to sleep
+				deactivate_task(rq, next, DEQUEUE_SLEEP);
+
+				// Add it to the wakeup list
 				tlw = kvmalloc(sizeof(struct task_list_wrapper), GFP_ATOMIC);
 				if (!tlw)
 				{
@@ -3560,15 +3555,17 @@ static void __sched notrace __schedule(bool preempt)
 					mdelay(10000);
 				}
 				tlw->p = next;
-				list_add ( &tlw->mylist , &mylinkedlist );
+				list_add ( &tlw->mylist , &wakeup );
+
+				put_back = next;
 
 				// and pick again
 				goto levelspickagain;
 			}
 			else
 			{
-				// else, we have seen every process in the runqueue and none are of our level
-				// put this task back into the rq
+				// We have seen every process in the runqueue, and none are of our level
+				// Put this task back into the rq
 				put_prev_task(rq, next);
 
 				// and set next to be the idle task
@@ -3577,11 +3574,11 @@ static void __sched notrace __schedule(bool preempt)
 		}
 
 		struct list_head *pos, *q; 
-		list_for_each_safe(pos, q, &mylinkedlist) 
+		list_for_each_safe(pos, q, &wakeup) 
 		{ 
 			tlw = list_entry(pos, struct task_list_wrapper, mylist);
 			
-			put_prev_task(rq, tlw->p);
+			activate_task(rq, tlw->p, ENQUEUE_WAKEUP);
 			
 			list_del(pos);
 			kvfree(tlw);
