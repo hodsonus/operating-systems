@@ -3418,11 +3418,6 @@ again:
 	BUG();
 }
 
-struct task_list_wrapper {
-	struct task_struct *p;
-	struct list_head mylist;
-};
-
 /*
  * __schedule() is the main scheduler function.
  *
@@ -3466,6 +3461,7 @@ static void __sched notrace __schedule(bool preempt)
 {
 	struct task_struct *prev, *next, *put_back;
 	struct task_list_wrapper *tlw;
+	struct list_head *pos, *q;
 	unsigned long *switch_count;
 	struct rq_flags rf;
 	struct rq *rq;
@@ -3526,66 +3522,79 @@ static void __sched notrace __schedule(bool preempt)
 		switch_count = &prev->nvcsw;
 	}
 
+	// Get the current amount of tasks running
 	num_tasks_running = rq->nr_running;
 
 	if (num_tasks_running)
 	{
+		// If there are running tasks on this RQ, schedule "levels style"
+
+		// Initialize the list of tasks that need to be woken up
 		LIST_HEAD(wakeup);
 
+		// Initialize the counter of tasks that have been pulled from the queues
 		num_tasks_pulled = 0;
+
+		// The first task that we need to put back is the previous task
 		put_back = prev;
 
 	levelspickagain:
 
+		// Get the next task from the underlying scheduling mechanism
 		next = pick_next_task(rq, put_back, &rf);
 
+		// If the next task is not of the proper level, we cannot let it be scheduled
 		if ( level_of(next) != levels_management.current_level )
 		{
 			if (++num_tasks_pulled < num_tasks_running)
 			{
 				// If we have not seen every process in the rq
-				// Put next to sleep
+				
+				// Put task to sleep
 				deactivate_task(rq, next, DEQUEUE_SLEEP);
 
 				// Add it to the wakeup list
 				tlw = kvmalloc(sizeof(struct task_list_wrapper), GFP_ATOMIC);
-				if (!tlw)
-				{
-					pr_info("KVMALLOC FAILED, %d tasks pulled, %d tasks", num_tasks_pulled, num_tasks_running);
-					mdelay(10000);
-				}
+				if (!tlw) BUG();
 				tlw->p = next;
 				list_add ( &tlw->mylist , &wakeup );
 
+				// Set it as a task that needs to be put back into the queue (it's asleep now)
 				put_back = next;
 
-				// and pick again
+				// Pick again
 				goto levelspickagain;
 			}
 			else
 			{
 				// We have seen every process in the runqueue, and none are of our level
+				
 				// Put this task back into the rq
 				put_prev_task(rq, next);
 
-				// and set next to be the idle task
+				// Set next to be the idle task
 				next = rq->idle;
 			}
 		}
 
-		struct list_head *pos, *q; 
+		// Wakeup the tasks that we put to sleep in order to pick a task of the proper level  
 		list_for_each_safe(pos, q, &wakeup) 
 		{ 
+			// Get the task list wrapper at this position in the array
 			tlw = list_entry(pos, struct task_list_wrapper, mylist);
 			
+			// Wake it up
 			activate_task(rq, tlw->p, ENQUEUE_WAKEUP);
 			
+			// Delete it from the wakeup list and free the associated memory
 			list_del(pos);
 			kvfree(tlw);
 		}
 	}
 	else
 	{
+		// If there are no running tasks on this CPU, schedule as normal
+		// Should schedule the idle task
 		next = pick_next_task(rq, prev, &rf);
 	}
 

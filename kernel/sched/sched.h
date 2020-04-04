@@ -93,6 +93,14 @@ extern __read_mostly int scheduler_running;
 extern unsigned long calc_load_update;
 extern atomic_long_t calc_load_tasks;
 
+/* Used as a wrapper to group together potentially unrelated tasks for
+ * management. Currently used by scheduler to refer to asleep tasks. */
+struct task_list_wrapper {
+	struct task_struct *p;
+	struct list_head mylist;
+};
+
+/* Struct global to the system, used to manage the levels attributes */
 struct levels_management {
 	int alloc[NUM_TASK_LEVELS];
 	int current_level;
