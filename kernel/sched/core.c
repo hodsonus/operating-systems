@@ -11,8 +11,6 @@
 
 #include <linux/kcov.h>
 
-#include <linux/delay.h>
-
 #include <asm/switch_to.h>
 #include <asm/tlb.h>
 
