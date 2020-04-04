@@ -3533,7 +3533,7 @@ static void __sched notrace __schedule(bool preempt)
 	struct task_list_wrapper *tlw = kvmalloc(sizeof(struct task_list_wrapper), GFP_KERNEL);
 	if (!tlw)
 	{
-		pr_info("KVMALLOC FAILED, %d tasks pulled, %d tasks", num_tasks_pulled);
+		pr_info("KVMALLOC FAILED, %d tasks pulled, %d tasks", num_tasks_pulled, num_tasks_running);
 		mdelay(10000);
 	}
 	tlw->p = prev;
@@ -3553,7 +3553,7 @@ levelspickagain:
 			tlw = kvmalloc(sizeof(struct task_list_wrapper), GFP_KERNEL);
 			if (!tlw)
 			{
-				pr_info("KVMALLOC FAILED, %d tasks pulled, %d tasks", num_tasks_pulled);
+				pr_info("KVMALLOC FAILED, %d tasks pulled, %d tasks", num_tasks_pulled, num_tasks_running);
 				mdelay(10000);
 			}
 			tlw->p = next;
