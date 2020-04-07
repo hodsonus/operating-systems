@@ -2,4 +2,4 @@
 
 #define	EBLEVEL	134	/* Bad level specified. */
 #define	EBALLOC	135	/* Bad level allocation specified, not a valid timeslice. */
-#define	EBALLOCUNDER	135	/* Bad level allocation specified, total allocation under threshold. */
+#define	EBALLOCUNDER	136	/* Bad level allocation specified, total allocation under threshold. */
