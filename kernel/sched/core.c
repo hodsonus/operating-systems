@@ -3066,7 +3066,7 @@ void scheduler_tick(void)
 		// update the current level to the first nonzero allocation
 		do {
 			levels_management.current_level = (levels_management.current_level + 1) % NUM_TASK_LEVELS;
-		} while ( !levels_management.alloc[levels_management.current_level] );
+		} while (  unlikely( !levels_management.alloc[levels_management.current_level] )  );
 		
 		// set the amount of ticks allotted for this runqueue
 		levels_management.remaining_ticks = levels_management.alloc[levels_management.current_level] * HZ / 1000;
@@ -3523,7 +3523,7 @@ static void __sched notrace __schedule(bool preempt)
 	// Get the current amount of tasks running
 	num_tasks_running = rq->nr_running;
 
-	if (num_tasks_running)
+	if ( likely(num_tasks_running) )
 	{
 		// If there are running tasks on this RQ, schedule "levels style"
 
@@ -3540,11 +3540,14 @@ static void __sched notrace __schedule(bool preempt)
 
 		// Get the next task from the underlying scheduling mechanism
 		next = pick_next_task(rq, put_back, &rf);
+		++num_tasks_pulled;
 
 		// If the next task is not of the proper level, we cannot let it be scheduled
+		// It is hard to comment on the likelihood of the task being the correct level,
+		// therefore we will not attempt to assist branch prediction
 		if ( level_of(next) != levels_management.current_level )
 		{
-			if (++num_tasks_pulled < num_tasks_running)
+			if ( likely(num_tasks_pulled < num_tasks_running) )
 			{
 				// If we have not seen every process in the rq
 				
